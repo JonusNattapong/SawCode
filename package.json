@@ -21,6 +21,8 @@
     "type-check": "tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
+    "tui": "bun src/cli.ts tui",
+    "query": "bun src/cli.ts query",
     "lint": "biome check src/",
     "format": "biome format --write src/",
     "example": "bun run examples/simple-agent.ts",

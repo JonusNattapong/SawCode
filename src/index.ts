@@ -25,6 +25,8 @@ export * from './types.js'
 export { createTool, createRegistry, getTool, listTools } from './tools/index.js'
 export { bashTool, bashSchema } from './tools/bash.js'
 export { webfetchTool, webfetchSchema } from './tools/webfetch.js'
+export { AgentTUI, launchTUI } from './tui/index.js'
+export type { TUIConfig } from './tui/index.js'
 
 /**
  * Main Agent class
