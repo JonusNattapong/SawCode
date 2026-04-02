@@ -17,7 +17,7 @@ async function main() {
     model: 'claude-opus-4-6',
     temperature: 0.7,
     maxTokens: 2048,
-    tools: [bashTool, webfetchTool],
+    tools: [bashTool, webfetchTool] as any,
     systemPrompt: 'You are a helpful AI assistant powered by Claude Code Agent.',
   })
 

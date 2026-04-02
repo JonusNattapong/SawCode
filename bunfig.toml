@@ -1,6 +1,6 @@
 [install]
-# prefer npm install over yarn
-prefer = "npm"
+# Install mode: online or offline
+mode = "development"
 
 # cache directory
 cache_dir = "node_modules/.cache"

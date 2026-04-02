@@ -47,6 +47,8 @@ export interface EnvConfig {
 /**
  * Get environment variable with type conversion
  */
+function getEnv(key: string): string | undefined
+function getEnv(key: string, defaultValue: string): string
 function getEnv(key: string, defaultValue?: string): string | undefined {
   const value = process.env[key]
   return value !== undefined ? value : defaultValue
@@ -153,17 +155,12 @@ export function printEnvConfig(config: EnvConfig): void {
   console.log('─'.repeat(50))
 }
 
-// Auto-load on import if .env exists
+/**
+ * Load .env file
+ * Note: Bun automatically loads .env files, so this is mainly for other runtimes
+ */
 export function loadEnv(): void {
-  try {
-    // Try to load .env file using dynamic import
-    const fs = require('fs')
-    if (fs.existsSync('.env')) {
-      const dotenv = require('dotenv')
-      dotenv.config()
-    }
-  } catch {
-    // Silently fail if dotenv is not installed
-    // Environment variables can still be set manually
-  }
+  // Bun automatically loads .env files on startup
+  // This function is a no-op in Bun but kept for compatibility
+  // For Node.js, you would need to call: await import('dotenv/config')
 }

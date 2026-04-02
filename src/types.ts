@@ -43,7 +43,9 @@ export type ToolDefinition<Schema extends ToolSchema = ToolSchema> = {
   annotations?: ToolAnnotations
 }
 
-export type ToolRegistry = Map<string, ToolDefinition>
+export type AnyToolDefinition = ToolDefinition<any>
+
+export type ToolRegistry = Map<string, AnyToolDefinition>
 
 // ============================================================================
 // Agent Configuration
@@ -54,7 +56,7 @@ export type AgentConfig = {
   temperature?: number
   maxTokens?: number
   systemPrompt?: string
-  tools?: ToolDefinition[]
+  tools?: AnyToolDefinition[]
 }
 
 // ============================================================================

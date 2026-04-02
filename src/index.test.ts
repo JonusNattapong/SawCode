@@ -11,7 +11,7 @@ describe('Agent', () => {
   beforeEach(() => {
     agent = new Agent({
       model: 'claude-opus-4-6',
-      tools: [bashTool, webfetchTool],
+      tools: [bashTool, webfetchTool] as any,
     })
   })
 
@@ -68,11 +68,12 @@ describe('Agent', () => {
         properties: {},
         required: [],
       } as any,
-      handler: async () => ({ type: 'text' as const, text: 'test' }),
+      handler: async () => ({
+        content: [{ type: 'text' as const, text: 'test' }],
+      }),
     }
 
     agent.addTool(newTool)
-    const config = agent.getConfig()
     // Note: tools are stored separately in the registry
     expect(agent).toBeDefined()
   })

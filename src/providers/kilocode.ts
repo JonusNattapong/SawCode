@@ -5,8 +5,7 @@
  * Handles authentication, requests, and responses
  */
 
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
-import { createLogger } from '../utils/env.js'
+import { createLogger } from '../utils/logger.js'
 
 const log = createLogger('kilocode')
 
@@ -223,10 +222,12 @@ export function resetKiloCodeClient(): void {
 
 /**
  * Create KiloCode tool for agent
+ * Note: This requires importing in client code to avoid circular dependencies
  */
-export function createKiloCodeTool() {
-  const { z } = require('zod')
-  const { createTool } = require('../tools/index.js')
+export async function createKiloCodeTool() {
+  // Dynamic import to avoid circular dependencies
+  const { z } = await import('zod')
+  const { createTool } = await import('../tools/index.js')
 
   const kilocodeSchema = z.object({
     method: z.enum(['GET', 'POST', 'PUT', 'DELETE']),
@@ -238,14 +239,22 @@ export function createKiloCodeTool() {
     'kilocode-api',
     'Call KiloCode API endpoints. Requires KILOCODE_TOKEN in environment.',
     kilocodeSchema,
-    async ({ method, endpoint, body }) => {
+    async (args: Record<string, unknown>) => {
+      const method = args.method as 'GET' | 'POST' | 'PUT' | 'DELETE'
+      const endpoint = args.endpoint as string
+      const body = args.body as Record<string, unknown> | undefined
+
       try {
         const client = getKiloCodeClient()
 
         if (!client.isAuthenticated()) {
           return {
-            type: 'text',
-            text: 'Error: KiloCode not authenticated. Set KILOCODE_TOKEN in .env',
+            content: [
+              {
+                type: 'text' as const,
+                text: 'Error: KiloCode not authenticated. Set KILOCODE_TOKEN in .env',
+              },
+            ],
             isError: true,
           }
         }
@@ -254,20 +263,32 @@ export function createKiloCodeTool() {
 
         if (response.success) {
           return {
-            type: 'text',
-            text: JSON.stringify(response.data, null, 2),
+            content: [
+              {
+                type: 'text' as const,
+                text: JSON.stringify(response.data, null, 2),
+              },
+            ],
           }
         } else {
           return {
-            type: 'text',
-            text: `Error: ${response.error}\n${response.message || ''}`,
+            content: [
+              {
+                type: 'text' as const,
+                text: `Error: ${response.error}\n${response.message || ''}`,
+              },
+            ],
             isError: true,
           }
         }
       } catch (error) {
         return {
-          type: 'text',
-          text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          content: [
+            {
+              type: 'text' as const,
+              text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+            },
+          ],
           isError: true,
         }
       }

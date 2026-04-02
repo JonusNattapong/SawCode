@@ -11,7 +11,7 @@ import { getTool } from '../tools/index.js'
 export async function handleQuery(
   state: AgentState,
   userInput: string,
-  options?: QueryOptions,
+  _options?: QueryOptions,
 ): Promise<QueryResult> {
   // Add user message to history
   const userMessage: AgentMessage = {
@@ -20,8 +20,8 @@ export async function handleQuery(
   }
   state.messages.push(userMessage)
 
-  // Merge config with options
-  const config = { ...state.config, ...options }
+  // TODO: Merge config with options and use for Claude API calls
+  // const config = { ...state.config, ...options }
 
   // For now, return a simple response
   // In a real implementation, this would call the Claude API
@@ -59,10 +59,23 @@ export async function handleToolResult(
   try {
     const result = await tool.handler(toolArgs as never)
 
+    // Extract text from MCP result format
+    let content = ''
+    if ('content' in result && Array.isArray(result.content) && result.content.length > 0) {
+      const firstContent = result.content[0]
+      if (typeof firstContent === 'object' && 'text' in firstContent) {
+        content = (firstContent as { text: string }).text
+      } else {
+        content = JSON.stringify(result.content[0])
+      }
+    } else {
+      content = JSON.stringify(result)
+    }
+
     const toolResultMessage: AgentMessage = {
       type: 'tool_result',
       toolUseId,
-      content: result.type === 'text' ? result.text : JSON.stringify(result),
+      content,
     }
     state.messages.push(toolResultMessage)
 

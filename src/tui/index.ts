@@ -100,7 +100,7 @@ export class AgentTUI {
         break
 
       case 'export':
-        this.exportState(args[0])
+        await this.exportState(args[0])
         break
 
       case 'import':
@@ -250,13 +250,13 @@ export class AgentTUI {
   /**
    * Export state to file
    */
-  private exportState(filename?: string): void {
+  private async exportState(filename?: string): Promise<void> {
     try {
       const state = this.agent.exportState()
       const file = filename || 'agent-state.json'
 
-      const fs = require('fs')
-      fs.writeFileSync(file, JSON.stringify(state, null, 2))
+      const fs = await import('fs/promises')
+      await fs.writeFile(file, JSON.stringify(state, null, 2), 'utf-8')
 
       console.log(`✅ State exported to ${file}`)
       console.log(`   ${state.messages.length} messages saved`)
@@ -273,9 +273,9 @@ export class AgentTUI {
   private async importState(filename?: string): Promise<void> {
     try {
       const file = filename || 'agent-state.json'
-      const fs = require('fs')
+      const fs = await import('fs/promises')
 
-      const data = fs.readFileSync(file, 'utf-8')
+      const data = await fs.readFile(file, 'utf-8')
       const state = JSON.parse(data)
 
       this.agent.importState(state)

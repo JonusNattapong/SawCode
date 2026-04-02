@@ -31,13 +31,21 @@ export const webfetchTool = createTool(
       const text = await response.text()
 
       return {
-        type: 'text',
-        text: `Status: ${response.status}\n\n${text}`,
+        content: [
+          {
+            type: 'text' as const,
+            text: `Status: ${response.status}\n\n${text}`,
+          },
+        ],
       }
     } catch (error) {
       return {
-        type: 'text',
-        text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+        content: [
+          {
+            type: 'text' as const,
+            text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
         isError: true,
       }
     }

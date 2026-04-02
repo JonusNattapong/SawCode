@@ -26,13 +26,21 @@ export const bashTool = createTool(
       }
 
       return {
-        type: 'text',
-        text: `Command executed: ${command}\n\nNote: This is a mock response. Implement actual bash execution as needed.`,
+        content: [
+          {
+            type: 'text' as const,
+            text: `Command executed: ${command}\n\nNote: This is a mock response. Implement actual bash execution as needed.`,
+          },
+        ],
       }
     } catch (error) {
       return {
-        type: 'text',
-        text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+        content: [
+          {
+            type: 'text' as const,
+            text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
         isError: true,
       }
     }

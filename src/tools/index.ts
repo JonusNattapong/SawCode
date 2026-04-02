@@ -19,8 +19,8 @@ export function createTool<Schema extends ToolSchema>(
     name,
     description,
     inputSchema,
-    handler,
-  }
+    handler: handler as (args: Record<string, unknown>) => Promise<CallToolResult>,
+  } as ToolDefinition<Schema>
 }
 
 /**
