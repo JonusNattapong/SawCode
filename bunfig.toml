@@ -1,0 +1,26 @@
+[install]
+# prefer npm install over yarn
+prefer = "npm"
+
+# cache directory
+cache_dir = "node_modules/.cache"
+
+# enable peer dependencies
+allow-optional-dependencies = true
+
+[compile]
+# Target for compilation
+target = "bun"
+
+# Do not use esbuild's loose mode
+looseEquality = false
+
+[test]
+# Test configuration
+preload = []
+snapshots = "./test/snapshots"
+timeout_ms = 5000
+
+[debug]
+# Show logs
+logs_visible = false

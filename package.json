@@ -1,0 +1,42 @@
+{
+  "name": "@sawcode/agent",
+  "version": "0.1.0",
+  "description": "Claude Code Agent/Skill built with Bun + TypeScript",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./sdk": {
+      "import": "./dist/sdk.js",
+      "types": "./dist/sdk.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun run build:ts && bun run build:types",
+    "build:ts": "tsc --outDir dist --declaration false",
+    "build:types": "tsc --outDir dist --emitDeclarationOnly",
+    "type-check": "tsc --noEmit",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "lint": "biome check src/",
+    "format": "biome format --write src/",
+    "example": "bun run examples/simple-agent.ts",
+    "clean": "rm -rf dist node_modules bun.lock"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.4.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@types/bun": "latest",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
