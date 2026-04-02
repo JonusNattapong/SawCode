@@ -3,19 +3,20 @@ import { z } from 'zod'
 import { execSync } from 'child_process'
 
 export const gitStatusSchema = z.object({
-  porcelain: z.boolean().optional().default(false)
+  porcelain: z.boolean().optional()
 })
 
 export const gitStatusTool = createTool(
   'git-status',
   'Get current git status with branch, changes, and tracking info',
   gitStatusSchema,
-  async ({ porcelain }) => {
+  async (args) => {
     try {
+      const porcelain = args.porcelain ?? false
       const format = porcelain ? 'porcelain' : 'short'
       const status = execSync(`git status --${format}`, { encoding: 'utf-8' })
       const branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim()
-      
+
       return {
         content: [{
           type: 'text',
@@ -34,7 +35,7 @@ export const gitStatusTool = createTool(
 )
 
 export const gitDiffSchema = z.object({
-  staged: z.boolean().optional().default(false),
+  staged: z.boolean().optional(),
   file: z.string().optional()
 })
 
@@ -42,12 +43,13 @@ export const gitDiffTool = createTool(
   'git-diff',
   'Show git diff for changes (staged or unstaged)',
   gitDiffSchema,
-  async ({ staged, file }) => {
+  async (args) => {
     try {
+      const staged = args.staged ?? false
       const flag = staged ? '--staged' : ''
-      const target = file ? ` ${file}` : ''
+      const target = args.file ? ` ${args.file}` : ''
       const diff = execSync(`git diff ${flag}${target}`, { encoding: 'utf-8' })
-      
+
       return {
         content: [{
           type: 'text',
@@ -66,8 +68,8 @@ export const gitDiffTool = createTool(
 )
 
 export const gitLogSchema = z.object({
-  count: z.number().optional().default(10),
-  oneline: z.boolean().optional().default(true),
+  count: z.number().optional(),
+  oneline: z.boolean().optional(),
   author: z.string().optional()
 })
 
@@ -75,12 +77,14 @@ export const gitLogTool = createTool(
   'git-log',
   'Show git commit history with optional filter',
   gitLogSchema,
-  async ({ count, oneline, author }) => {
+  async (args) => {
     try {
+      const count = args.count ?? 10
+      const oneline = args.oneline ?? true
       const format = oneline ? '--oneline' : ''
-      const authorFilter = author ? `--author="${author}"` : ''
+      const authorFilter = args.author ? `--author="${args.author}"` : ''
       const log = execSync(`git log -n ${count} ${format} ${authorFilter}`, { encoding: 'utf-8' })
-      
+
       return {
         content: [{
           type: 'text',
@@ -99,18 +103,19 @@ export const gitLogTool = createTool(
 )
 
 export const gitBranchSchema = z.object({
-  remote: z.boolean().optional().default(false)
+  remote: z.boolean().optional()
 })
 
 export const gitBranchTool = createTool(
   'git-branch',
   'List or manage git branches',
   gitBranchSchema,
-  async ({ list: _list, remote }) => {
+  async (args) => {
     try {
+      const remote = args.remote ?? false
       const flag = remote ? '-r' : ''
       const branches = execSync(`git branch ${flag}`, { encoding: 'utf-8' })
-      
+
       return {
         content: [{
           type: 'text',
@@ -130,15 +135,16 @@ export const gitBranchTool = createTool(
 
 export const gitAddSchema = z.object({
   files: z.array(z.string()).optional(),
-  all: z.boolean().optional().default(false)
+  all: z.boolean().optional()
 })
 
 export const gitAddTool = createTool(
   'git-add',
   'Stage files for commit',
   gitAddSchema,
-  async ({ files, all }) => {
+  async (args) => {
     try {
+      const all = args.all ?? false
       if (all) {
         execSync('git add .', { encoding: 'utf-8' })
         return {
@@ -148,17 +154,17 @@ export const gitAddTool = createTool(
           }]
         }
       }
-      
-      if (files && files.length > 0) {
-        execSync(`git add ${files.join(' ')}`, { encoding: 'utf-8' })
+
+      if (args.files && args.files.length > 0) {
+        execSync(`git add ${args.files.join(' ')}`, { encoding: 'utf-8' })
         return {
           content: [{
             type: 'text',
-            text: `Staged: ${files.join(', ')}`
+            text: `Staged: ${args.files.join(', ')}`
           }]
         }
       }
-      
+
       return {
         content: [{
           type: 'text',
@@ -178,18 +184,19 @@ export const gitAddTool = createTool(
 
 export const gitCommitSchema = z.object({
   message: z.string(),
-  amend: z.boolean().optional().default(false)
+  amend: z.boolean().optional()
 })
 
 export const gitCommitTool = createTool(
   'git-commit',
   'Create a commit with message',
   gitCommitSchema,
-  async ({ message, amend }) => {
+  async (args) => {
     try {
+      const amend = args.amend ?? false
       const flag = amend ? '--amend' : ''
-      const result = execSync(`git commit -m "${message}" ${flag}`, { encoding: 'utf-8' })
-      
+      const result = execSync(`git commit -m "${args.message}" ${flag}`, { encoding: 'utf-8' })
+
       return {
         content: [{
           type: 'text',
