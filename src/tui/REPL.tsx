@@ -1,11 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Text, useInput, useApp } from 'ink';
-import Spinner from 'ink-spinner';
-import TextInput from 'ink-text-input';
-import type { Agent } from '../index.js';
-import { parseMarkdown } from '../utils/markdown-parser.js';
-import { formatCodeBlock, formatError } from '../utils/code-formatter.js';
-import { isFeatureEnabled } from '../utils/feature-flags.js';
+/**
+ * Unified REPL Implementation
+ * 
+ * Single component supporting both 'classic' and 'enhanced' variants:
+ * - Classic: Feature-rich with Buddy companion system
+ * - Enhanced: Component-based with menu navigation and history
+ */
+
+import React, { useState, useEffect, useCallback } from 'react'
+import { Box, Text, useInput, useApp } from 'ink'
+import Spinner from 'ink-spinner'
+import TextInput from 'ink-text-input'
+import type { Agent } from '../index.js'
+import { isFeatureEnabled } from '../utils/feature-flags.js'
 import {
   type Companion,
   hatchCompanion,
@@ -13,80 +19,84 @@ import {
   CompanionSprite,
   companionQuip,
   formatCompanionCard,
-} from '../buddy/index.js';
+} from '../buddy/index.js'
 
-interface Message {
-  role: 'user' | 'assistant' | 'system' | 'tool' | 'help' | 'info' | 'code' | 'streaming' | 'buddy';
-  content: string;
-  isStreaming?: boolean;
+export interface Message {
+  role: 'user' | 'assistant' | 'system' | 'tool' | 'help' | 'info' | 'code' | 'streaming' | 'buddy' | 'error'
+  content: string
+  isStreaming?: boolean
+  timestamp?: number
 }
 
-interface AppProps {
-  agent: Agent;
+export interface REPLProps {
+  agent: Agent
+  variant?: 'classic' | 'enhanced'
 }
 
-const REPL: React.FC<AppProps> = ({ agent }: AppProps) => {
-  const { exit } = useApp();
-  const [query, setQuery] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+/**
+ * Classic REPL: Feature-rich with Buddy companion
+ */
+const ClassicREPL: React.FC<{ agent: Agent }> = ({ agent }) => {
+  const { exit } = useApp()
+  const [query, setQuery] = useState('')
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Buddy state
-  const [companion, setCompanion] = useState<Companion | undefined>();
-  const [buddyReaction, setBuddyReaction] = useState<string | undefined>();
-  const [petAt, setPetAt] = useState<number | undefined>();
+  const [companion, setCompanion] = useState<Companion | undefined>()
+  const [buddyReaction, setBuddyReaction] = useState<string | undefined>()
+  const [petAt, setPetAt] = useState<number | undefined>()
 
-  const buddyEnabled = isFeatureEnabled('ENABLE_BUDDY');
+  const buddyEnabled = isFeatureEnabled('ENABLE_BUDDY')
 
   // Initialize buddy
   useEffect(() => {
-    if (!buddyEnabled) return;
-    const userId = process.env.USER || process.env.USERNAME || 'sawcode-user';
-    const stored = undefined;
-    const comp = getCompanion(userId, stored) || hatchCompanion(userId);
-    setCompanion(comp);
-  }, [buddyEnabled]);
+    if (!buddyEnabled) return
+    const userId = process.env.USER || process.env.USERNAME || 'sawcode-user'
+    const comp = getCompanion(userId, undefined) || hatchCompanion(userId)
+    setCompanion(comp)
+  }, [buddyEnabled])
 
   // Buddy quip on events
   const buddySay = useCallback((text: string) => {
-    if (!buddyEnabled) return;
-    setBuddyReaction(text);
-    setTimeout(() => setBuddyReaction(undefined), 10000);
-  }, [buddyEnabled]);
+    if (!buddyEnabled) return
+    setBuddyReaction(text)
+    setTimeout(() => setBuddyReaction(undefined), 10000)
+  }, [buddyEnabled])
 
   // Load initial history
   useEffect(() => {
     const history = agent.getMessages().map((msg: any) => ({
       role: msg.role as any,
-      content: msg.content
-    }));
-    setMessages(history);
-    
-    setMessages(prev => [
+      content: msg.content,
+    }))
+    setMessages(history)
+
+    setMessages((prev) => [
       ...prev,
       {
         role: 'info',
-        content: '🤖 SawCode Agent - Type /help for commands',
-      }
-    ]);
+        content: '🤖 SawCode Agent (Classic) - Type /help for commands',
+      },
+    ])
 
     // Buddy welcome
     if (buddyEnabled && companion) {
       setTimeout(() => {
-        buddySay(companionQuip(companion));
-      }, 1000);
+        buddySay(companionQuip(companion))
+      }, 1000)
     }
-  }, [agent]);
+  }, [agent, buddyEnabled, companion])
 
   const handleCommand = (cmd: string): boolean => {
-    const parts = cmd.trim().split(/\s+/);
-    const command = parts[0].toLowerCase();
+    const parts = cmd.trim().split(/\s+/)
+    const command = parts[0].toLowerCase()
 
     switch (command) {
       case '/help':
       case '/h':
-        setMessages(prev => [
+        setMessages((prev) => [
           ...prev,
           {
             role: 'help',
@@ -96,296 +106,348 @@ const REPL: React.FC<AppProps> = ({ agent }: AppProps) => {
   /clear              Clear conversation history
   /tools              List available tools
   /buddy              Show companion card
-  /buddy pet          Pet your companion
-  /buddy quip         Make companion say something
   /exit, /quit        Exit the TUI
   
 Just type your message to chat with the agent!`,
-          }
-        ]);
-        return true;
+          },
+        ])
+        return true
 
       case '/history':
-        const history = agent.getMessages();
+        const history = agent.getMessages()
         if (history.length === 0) {
-          setMessages(prev => [
-            ...prev,
-            { role: 'info', content: '📭 No messages in history' }
-          ]);
+          setMessages((prev) => [...prev, { role: 'info', content: '📭 No messages in history' }])
         } else {
           const historyText = history
             .map((msg: any, i: number) => `${i + 1}. [${msg.role}] ${msg.content.substring(0, 50)}...`)
-            .join('\n');
-          setMessages(prev => [
+            .join('\n')
+          setMessages((prev) => [
             ...prev,
-            { role: 'info', content: `📜 History (${history.length} messages):\n${historyText}` }
-          ]);
+            { role: 'info', content: `📜 History (${history.length} messages):\n${historyText}` },
+          ])
         }
-        return true;
+        return true
 
       case '/clear':
-        agent.clearHistory();
-        setMessages([{
-          role: 'info',
-          content: '✅ History cleared'
-        }]);
-        return true;
+        agent.clearHistory()
+        setMessages([{ role: 'info', content: '✅ History cleared' }])
+        return true
 
       case '/tools':
-        const tools = agent.getTools();
+        const tools = agent.getTools()
         if (tools.length === 0) {
-          setMessages(prev => [
-            ...prev,
-            { role: 'info', content: '🔧 No tools available' }
-          ]);
+          setMessages((prev) => [...prev, { role: 'info', content: '🔧 No tools available' }])
         } else {
           const toolsText = tools
             .map((tool: any) => `• ${tool.name || 'unnamed'}: ${tool.description || 'No description'}`)
-            .join('\n');
-          setMessages(prev => [
+            .join('\n')
+          setMessages((prev) => [
             ...prev,
-            { role: 'info', content: `🔧 Available Tools:\n${toolsText}` }
-          ]);
+            { role: 'info', content: `🔧 Available Tools:\n${toolsText}` },
+          ])
         }
-        return true;
+        return true
 
       case '/buddy':
         if (!buddyEnabled || !companion) {
-          setMessages(prev => [
+          setMessages((prev) => [
             ...prev,
-            { role: 'info', content: '❌ Buddy system is disabled. Set ENABLE_BUDDY=true to enable.' }
-          ]);
-          return true;
+            { role: 'info', content: '❌ Buddy system is disabled. Set ENABLE_BUDDY=true to enable.' },
+          ])
+          return true
         }
-        const subCmd = parts[1]?.toLowerCase();
+        const subCmd = parts[1]?.toLowerCase()
         if (subCmd === 'pet') {
-          setPetAt(Date.now());
-          setMessages(prev => [
-            ...prev,
-            { role: 'buddy', content: `You petted ${companion.name}! ♥` }
-          ]);
-          buddySay('♥ ♥ ♥');
-        } else if (subCmd === 'quip') {
-          buddySay(companionQuip(companion));
+          setPetAt(Date.now())
+          setMessages((prev) => [...prev, { role: 'buddy', content: `You petted ${companion.name}! ♥` }])
+          buddySay('♥ ♥ ♥')
         } else {
-          setMessages(prev => [
-            ...prev,
-            { role: 'buddy', content: formatCompanionCard(companion) }
-          ]);
+          setMessages((prev) => [...prev, { role: 'buddy', content: formatCompanionCard(companion) }])
         }
-        return true;
+        return true
 
       case '/exit':
       case '/quit':
-        exit();
-        return true;
+        exit()
+        return true
 
       default:
-        return false;
+        return false
     }
-  };
+  }
 
-  const handleSubmit = async (value: string) => {
-    if (!value.trim()) return;
-    
-    const userMsg: Message = { role: 'user', content: value };
-    setMessages((prev: Message[]) => [...prev, userMsg]);
-    setQuery('');
+  const handleSubmit = async (userQuery: string) => {
+    if (!userQuery.trim()) return
 
-    if (value.startsWith('/')) {
-      if (handleCommand(value)) {
-        return;
+    // Handle commands
+    if (userQuery.startsWith('/')) {
+      if (handleCommand(userQuery)) {
+        setQuery('')
+        return
       }
     }
 
-    setIsProcessing(true);
-    setError(null);
-
-    // Buddy reacts to user input
-    if (buddyEnabled && companion && Math.random() < 0.3) {
-      buddySay(companionQuip(companion));
-    }
+    // Add user message
+    setMessages((prev) => [...prev, { role: 'user', content: userQuery }])
+    setQuery('')
+    setIsProcessing(true)
+    setError(null)
 
     try {
-      const streamingMsg: Message = { role: 'streaming', content: '⠋ Streaming response...', isStreaming: true };
-      setMessages((prev: Message[]) => [...prev, streamingMsg]);
+      const result = await agent.query(userQuery)
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: result.response,
+        },
+      ])
 
-      let fullResponse = '';
-      const result = await agent.query(value);
-      fullResponse = result.response;
-
-      const parsed = parseMarkdown(fullResponse);
-      
-      setMessages((prev: Message[]) => prev.slice(0, -1));
-
-      const assistantMsg: Message = { 
-        role: parsed.hasCode ? 'code' : 'assistant', 
-        content: fullResponse 
-      };
-      setMessages((prev: Message[]) => [...prev, assistantMsg]);
-
-      if (parsed.blocks.length > 0) {
-        for (let i = 0; i < parsed.blocks.length; i++) {
-          const codeMsg: Message = {
-            role: 'code',
-            content: formatCodeBlock(parsed.blocks[i])
-          };
-          setMessages((prev: Message[]) => [...prev, codeMsg]);
-        }
-      }
-
-      // Buddy reacts to response
-      if (buddyEnabled && companion && Math.random() < 0.2) {
-        setTimeout(() => buddySay(companionQuip(companion)), 2000);
+      // Buddy reaction
+      if (buddyEnabled) {
+        buddySay('✨ Great question!')
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      setError(errorMsg);
-      setMessages((prev: Message[]) => prev.slice(0, -1));
-      setMessages((prev: Message[]) => [
-        ...prev,
-        { role: 'tool', content: formatError('Error', errorMsg) }
-      ]);
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error'
+      setError(errorMsg)
+      setMessages((prev) => [...prev, { role: 'error', content: errorMsg }])
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
-
-  useInput((input, key) => {
-    if (key.escape || (key.ctrl && input === 'c')) {
-      exit();
-    }
-  });
+  }
 
   return (
-    <Box flexDirection="column" padding={1} width={120}>
-      {/* Header */}
-      <Box borderStyle="round" borderColor="cyan" paddingX={1} marginBottom={1}>
-        <Text bold color="cyan">🤖 SawCode Agent (Claude Code-style TUI)</Text>
-        {buddyEnabled && companion && (
-          <Text color="gray"> • 🐾 {companion.name} ({companion.species})</Text>
-        )}
+    <Box flexDirection="column" width={100}>
+      <Box marginBottom={1}>
+        <Text bold color="cyan">
+          🤖 SawCode Agent (Classic)
+        </Text>
       </Box>
-
-      {/* Buddy sprite area */}
-      {buddyEnabled && companion && (
-        <Box marginBottom={1} flexDirection="row" alignItems="flex-end">
-          <CompanionSprite
-            companion={companion}
-            reaction={buddyReaction}
-            petAt={petAt}
-            compact={false}
-          />
-        </Box>
-      )}
 
       {/* Messages */}
-      <Box flexDirection="column" marginBottom={1} width="100%">
-        {messages.map((msg: Message, i: number) => {
-          let msgColor = 'white';
-          let prefix = '';
-
-          switch (msg.role) {
-            case 'user':
-              msgColor = 'green';
-              prefix = '› ';
-              break;
-            case 'assistant':
-              msgColor = 'blueBright';
-              prefix = '🤖 ';
-              break;
-            case 'code':
-              msgColor = 'gray';
-              prefix = '📝 ';
-              break;
-            case 'streaming':
-              msgColor = 'yellow';
-              prefix = '⏳ ';
-              break;
-            case 'tool':
-              msgColor = 'yellow';
-              prefix = '🔧 ';
-              break;
-            case 'help':
-              msgColor = 'cyanBright';
-              prefix = 'ℹ️  ';
-              break;
-            case 'info':
-              msgColor = 'gray';
-              prefix = 'ℹ️  ';
-              break;
-            case 'buddy':
-              msgColor = 'magenta';
-              prefix = '🐾 ';
-              break;
-            default:
-              msgColor = 'white';
-              prefix = '• ';
-          }
-
-          if (msg.role === 'code') {
-            return (
-              <Box key={i} marginBottom={1} flexDirection="column" width="100%">
-                <Text color="cyan" wrap="wrap">
-                  {msg.content}
-                </Text>
-              </Box>
-            );
-          }
-
-          return (
-            <Box key={i} marginBottom={0.5} flexDirection="column" width="100%">
-              <Box>
-                <Text bold color={msgColor as any}>
-                  {prefix}
-                </Text>
-                <Text color={msgColor as any} wrap="wrap">
-                  {msg.content}
-                </Text>
-              </Box>
-            </Box>
-          );
-        })}
+      <Box flexDirection="column" marginBottom={1} borderStyle="round" borderColor="gray">
+        {messages.slice(-10).map((msg, i) => (
+          <Box key={i} marginBottom={1}>
+            <Text
+              color={
+                msg.role === 'error'
+                  ? 'red'
+                  : msg.role === 'help'
+                    ? 'yellow'
+                    : msg.role === 'buddy'
+                      ? 'magenta'
+                      : 'white'
+              }
+            >
+              <Text bold>[{msg.role.toUpperCase()}]</Text> {msg.content}
+            </Text>
+          </Box>
+        ))}
       </Box>
 
-      {/* Processing indicator */}
-      {isProcessing && (
-        <Box marginBottom={1}>
-          <Text color="yellow">
-            <Spinner type="dots" /> Thinking...
-          </Text>
-        </Box>
-      )}
-
-      {/* Error indicator */}
-      {error && (
-        <Box marginBottom={1}>
-          <Text color="red">❌ {error}</Text>
-        </Box>
-      )}
-
-      {/* Input */}
+      {/* Input area */}
       <Box marginBottom={1}>
-        <Text color="cyan" bold>
-          ❯ 
-        </Text>
+        <Box width="12">
+          <Text color="blue">{isProcessing ? <Spinner /> : '💬'}</Text>
+        </Box>
         <TextInput
           value={query}
           onChange={setQuery}
           onSubmit={handleSubmit}
-          placeholder="Type /help for commands or ask anything..."
+          placeholder="Type message or /help..."
         />
       </Box>
 
-      {/* Footer */}
-      <Box>
-        <Text color="gray" dimColor>
-          Esc or Ctrl+C to exit • /help for commands
-          {buddyEnabled && companion && ` • /buddy for ${companion.name}`}
+      {/* Buddy companion */}
+      {buddyEnabled && companion && (
+        <Box marginTop={1}>
+          <CompanionSprite companion={companion} petAt={petAt} />
+          {buddyReaction && <Text color="magenta">{buddyReaction}</Text>}
+        </Box>
+      )}
+
+      {error && (
+        <Box marginTop={1}>
+          <Text color="red">❌ {error}</Text>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+/**
+ * Enhanced REPL: Component-based with menu navigation
+ */
+const EnhancedREPL: React.FC<{ agent: Agent }> = ({ agent }) => {
+  const { exit } = useApp()
+  const [messages, setMessages] = useState<Message[]>([])
+  const [selectedTool, setSelectedTool] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [menuIndex, setMenuIndex] = useState(0)
+  const [historyIndex, setHistoryIndex] = useState(0)
+  const [commandHistory, setCommandHistory] = useState<string[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const menuItems = ['Chat', 'Tools', 'History', 'Help', 'Exit']
+
+  useInput((input = '', key) => {
+    if (key.leftArrow && menuIndex > 0) {
+      setMenuIndex(menuIndex - 1)
+    } else if (key.rightArrow && menuIndex < menuItems.length - 1) {
+      setMenuIndex(menuIndex + 1)
+    } else if (key.upArrow && historyIndex < commandHistory.length - 1) {
+      setHistoryIndex(historyIndex + 1)
+      setQuery(commandHistory[commandHistory.length - 1 - (historyIndex + 1)] || '')
+    } else if (key.downArrow && historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1)
+      setQuery(commandHistory[commandHistory.length - 1 - (historyIndex - 1)] || '')
+    } else if (key.return) {
+      handleMenuSelect(menuItems[menuIndex])
+    } else if (input.trim()) {
+      setQuery((prev) => prev + input)
+    }
+
+    if (key.backspace) {
+      setQuery((prev) => prev.slice(0, -1))
+    }
+
+    if (key.escape) {
+      exit()
+    }
+  })
+
+  const handleMenuSelect = async (item: string) => {
+    switch (item) {
+      case 'Chat':
+        if (query.trim()) {
+          setCommandHistory((prev) => [...prev, query])
+          setHistoryIndex(0)
+          setMessages((prev) => [...prev, { role: 'user', content: query, timestamp: Date.now() }])
+          setQuery('')
+          setIsProcessing(true)
+
+          try {
+            const result = await agent.query(query)
+            setMessages((prev) => [
+              ...prev,
+              { role: 'assistant', content: result.response, timestamp: Date.now() },
+            ])
+          } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Error'
+            setMessages((prev) => [...prev, { role: 'error', content: errorMsg, timestamp: Date.now() }])
+          } finally {
+            setIsProcessing(false)
+          }
+        }
+        break
+
+      case 'Tools':
+        const tools = agent.getTools()
+        if (tools.length > 0) {
+          const toolsText = tools
+            .map((tool: any) => `• ${tool.name || 'unnamed'}`)
+            .join(', ')
+          setMessages((prev) => [...prev, { role: 'info', content: `🔧 Tools: ${toolsText}`, timestamp: Date.now() }])
+          setSelectedTool(selectedTool === null ? tools[0]?.name : null)
+        }
+        break
+
+      case 'History':
+        const hist = commandHistory.slice(-5).reverse()
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'info',
+            content: `📜 Recent:\n${hist.map((h) => `  • ${h}`).join('\n')}`,
+            timestamp: Date.now(),
+          },
+        ])
+        break
+
+      case 'Help':
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'help',
+            content: 'Navigation:\n→/← Menu | ↑/↓ History | Enter Submit | Esc Exit',
+            timestamp: Date.now(),
+          },
+        ])
+        break
+
+      case 'Exit':
+        exit()
+        break
+    }
+  }
+
+  return (
+    <Box flexDirection="column" width={100}>
+      <Box marginBottom={1} borderStyle="round" borderColor="cyan">
+        <Text color="cyan" bold>
+          ✨ SawCode Agent (Enhanced)
         </Text>
       </Box>
-    </Box>
-  );
-};
 
-export default REPL;
+      {/* Menu bar */}
+      <Box marginBottom={1}>
+        {menuItems.map((item, idx) => (
+          <Box key={item} marginRight={2}>
+            <Text color={idx === menuIndex ? 'cyan' : 'gray'} bold={idx === menuIndex}>
+              [{item}]
+            </Text>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Messages */}
+      <Box flexDirection="column" marginBottom={1} borderStyle="round" borderColor="gray">
+        {messages.slice(-8).map((msg, i) => (
+          <Box key={i} marginBottom={1}>
+            <Text
+              color={
+                msg.role === 'error'
+                  ? 'red'
+                  : msg.role === 'help'
+                    ? 'yellow'
+                    : msg.role === 'assistant'
+                      ? 'green'
+                      : 'white'
+              }
+            >
+              <Text bold>[{msg.role}]</Text> {msg.content.substring(0, 80)}
+            </Text>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Input */}
+      <Box>
+        <Box width="12">
+          <Text color="blue">{isProcessing ? <Spinner /> : '>'}</Text>
+        </Box>
+        <TextInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Enter query... (← → navigate, ↑ ↓ history)"
+        />
+      </Box>
+
+      {/* Tool selector */}
+      {selectedTool && (
+        <Box marginTop={1}>
+          <Text color="magenta">🔧 {selectedTool}</Text>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+/**
+ * Main Unified REPL Component
+ */
+const REPL: React.FC<REPLProps> = ({ agent, variant = 'classic' }) => {
+  return variant === 'enhanced' ? <EnhancedREPL agent={agent} /> : <ClassicREPL agent={agent} />
+}
+
+export default REPL

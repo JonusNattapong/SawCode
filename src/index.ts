@@ -31,6 +31,8 @@ export { listdirTool, listdirSchema } from './tools/listdir.js'
 export { grepTool, grepSchema } from './tools/grep.js'
 export { findTool, findSchema } from './tools/find.js'
 export { treeTool, treeSchema } from './tools/tree.js'
+// Output Styles & Formatting
+export { outputStylesTool, outputStylesSchema } from './tools/output-styles.js'
 // Phase 9: Git & GitHub Tools
 export { 
   gitStatusTool, gitStatusSchema,
@@ -79,6 +81,10 @@ export { skillSpecializationTool, skillSpecializationSchema } from './tools/skil
 export { memoryStorageTool, memoryStorageSchema } from './tools/memory-storage.js'
 export { patternLearningTool, patternLearningSchema } from './tools/pattern-learning.js'
 export { experienceReplayTool, experienceReplaySchema } from './tools/experience-replay.js'
+// Reference Tools: MCP, Notebooks, Skills
+export { mcpConnectorTool, mcpConnectorSchema } from './tools/mcp-connector.js'
+export { notebookExecutorTool, notebookExecutorSchema } from './tools/notebook-executor.js'
+export { skillLoaderTool, skillLoaderSchema } from './tools/skill-loader.js'
 // Phase 16: Desktop/Mobile Apps
 export { deviceCoordinatorTool, deviceCoordinatorSchema } from './tools/device-coordinator.js'
 export { sessionHandoffTool, sessionHandoffSchema } from './tools/session-handoff.js'
@@ -89,6 +95,8 @@ export * from './providers/index.js'
 export * from './utils/index.js'
 // Phase 29: Buddy Companion System
 export * from './buddy/index.js'
+// Phase 30: Voice Live Recording + Streaming STT
+export * from './voice/index.js'
 
 /**
  * Main Agent class
