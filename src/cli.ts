@@ -5,7 +5,7 @@
  *   bun src/cli.ts [command] [options]
  */
 
-import { Agent, bashTool, webfetchTool, filereadTool, filewriteTool, listdirTool, grepTool, findTool, treeTool, gitStatusTool, gitDiffTool, gitLogTool, gitBranchTool, gitAddTool, gitCommitTool, githubPRHelperTool, githubIssueTemplateTool, githubReleaseTool, githubWorkflowTool } from './index.js'
+import { Agent, bashTool, webfetchTool, filereadTool, filewriteTool, listdirTool, grepTool, findTool, treeTool } from './index.js'
 import { launchTUI } from './tui/index.js'
 import { getAvailableTools } from './utils/feature-flags.js'
 import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync } from 'fs'
