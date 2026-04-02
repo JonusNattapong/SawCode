@@ -2,7 +2,92 @@
  * Environment variable utilities
  *
  * Load and validate environment configuration from .env file
+ * Adapted from Claude Code reference: https://github.com/anthropics/claude-code/blob/main/src/utils/envUtils.ts
  */
+
+/**
+ * Check if an environment variable is "truthy"
+ * Handles strings like '1', 'true', 'yes', 'on' (case-insensitive)
+ * Also handles booleans directly
+ * @example
+ * isEnvTruthy(process.env.ENABLE_FEATURE) => true
+ * isEnvTruthy('1') => true
+ * isEnvTruthy('false') => false
+ * isEnvTruthy(undefined) => false
+ */
+export function isEnvTruthy(envVar: string | boolean | undefined): boolean {
+  if (!envVar) return false
+  if (typeof envVar === 'boolean') return envVar
+  const normalizedValue = envVar.toLowerCase().trim()
+  return ['1', 'true', 'yes', 'on'].includes(normalizedValue)
+}
+
+/**
+ * Check if an environment variable is explicitly set to a "falsy" value
+ * Checks for '0', 'false', 'no', 'off' (case-insensitive)
+ * Returns false if undefined
+ * @example
+ * isEnvDefinedFalsy(process.env.FEATURE) => true (if set to 'false')
+ * isEnvDefinedFalsy(undefined) => false
+ */
+export function isEnvDefinedFalsy(
+  envVar: string | boolean | undefined,
+): boolean {
+  if (envVar === undefined) return false
+  if (typeof envVar === 'boolean') return !envVar
+  if (!envVar) return false
+  const normalizedValue = envVar.toLowerCase().trim()
+  return ['0', 'false', 'no', 'off'].includes(normalizedValue)
+}
+
+/**
+ * Check if running in bare mode
+ * Bare mode skips hooks, LSP, plugins, and credential reads
+ * Can be enabled via CLAUDE_CODE_SIMPLE=1 env var or --bare CLI flag
+ * @example
+ * isBareMode() => true (if --bare was passed or CLAUDE_CODE_SIMPLE is set)
+ */
+export function isBareMode(): boolean {
+  return (
+    isEnvTruthy(process.env.CLAUDE_CODE_SIMPLE) ||
+    process.argv.includes('--bare')
+  )
+}
+
+/**
+ * Parses an array of environment variable strings into a key-value object
+ * @param envVars Array of strings in KEY=VALUE format
+ * @returns Object with key-value pairs
+ * @throws Error if format is invalid
+ * @example
+ * parseEnvVars(['-e', 'KEY1=value1', '-e', 'KEY2=value2'])
+ */
+export function parseEnvVars(
+  rawEnvArgs: string[] | undefined,
+): Record<string, string> {
+  const parsedEnv: Record<string, string> = {}
+
+  if (rawEnvArgs) {
+    for (const envStr of rawEnvArgs) {
+      const [key, ...valueParts] = envStr.split('=')
+      if (!key || valueParts.length === 0) {
+        throw new Error(
+          `Invalid environment variable format: ${envStr}, environment variables should be added as: -e KEY1=value1 -e KEY2=value2`,
+        )
+      }
+      parsedEnv[key] = valueParts.join('=')
+    }
+  }
+  return parsedEnv
+}
+
+/**
+ * Get the AWS region with fallback to default
+ * Matches the Anthropic Bedrock SDK's region behavior
+ */
+export function getAWSRegion(): string {
+  return process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1'
+}
 
 /**
  * Environment configuration schema
@@ -60,7 +145,7 @@ function getEnv(key: string, defaultValue?: string): string | undefined {
 function getBoolEnv(key: string, defaultValue: boolean = false): boolean {
   const value = getEnv(key)
   if (value === undefined) return defaultValue
-  return value.toLowerCase() === 'true' || value === '1'
+  return isEnvTruthy(value)
 }
 
 /**
