@@ -69,7 +69,7 @@ jobs:
             --exclude='.git' \
             --exclude='state' \
             --exclude='*.tgz' \
-            dist/ package.json README.md LICENSE
+            dist/ package.json README.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
