@@ -19,13 +19,29 @@ export interface FeatureFlags {
   ENABLE_FIND_TOOL: boolean
   ENABLE_TREE_TOOL: boolean
 
-  // Tools - Phase 9
+  // Tools - Phase 9: Git Tools
   ENABLE_GIT_STATUS_TOOL: boolean
   ENABLE_GIT_DIFF_TOOL: boolean
-  ENABLE_PR_HELPER_TOOL: boolean
-  ENABLE_BRANCH_HELPER_TOOL: boolean
+  ENABLE_GIT_LOG_TOOL: boolean
+  ENABLE_GIT_BRANCH_TOOL: boolean
+  ENABLE_GIT_ADD_TOOL: boolean
+  ENABLE_GIT_COMMIT_TOOL: boolean
+
+  // Tools - Phase 9: GitHub Tools
+  ENABLE_GITHUB_PR_HELPER_TOOL: boolean
+  ENABLE_GITHUB_ISSUE_TEMPLATE_TOOL: boolean
+  ENABLE_GITHUB_RELEASE_TOOL: boolean
+  ENABLE_GITHUB_WORKFLOW_TOOL: boolean
+
+  // Tools - Phase 10: Context Extraction
+  ENABLE_CONTEXT_EXTRACTOR_TOOL: boolean
+  ENABLE_CODE_ANALYZER_TOOL: boolean
+  ENABLE_GIT_HISTORY_ANALYZER_TOOL: boolean
 
   ENABLE_WEB_SEARCH_TOOL: boolean
+
+  // Phase 29: Buddy Companion
+  ENABLE_BUDDY: boolean
 
   // Experimental
   ENABLE_STREAMING: boolean
@@ -62,11 +78,25 @@ const defaultFlags: FeatureFlags = {
   ENABLE_GREP_TOOL: true,
   ENABLE_FIND_TOOL: true,
   ENABLE_TREE_TOOL: true,
+  // Phase 9: Git tools all enabled by default
   ENABLE_GIT_STATUS_TOOL: true,
   ENABLE_GIT_DIFF_TOOL: true,
-  ENABLE_PR_HELPER_TOOL: true,
-  ENABLE_BRANCH_HELPER_TOOL: true,
+  ENABLE_GIT_LOG_TOOL: true,
+  ENABLE_GIT_BRANCH_TOOL: true,
+  ENABLE_GIT_ADD_TOOL: true,
+  ENABLE_GIT_COMMIT_TOOL: true,
+  // Phase 9: GitHub tools all enabled by default
+  ENABLE_GITHUB_PR_HELPER_TOOL: true,
+  ENABLE_GITHUB_ISSUE_TEMPLATE_TOOL: true,
+  ENABLE_GITHUB_RELEASE_TOOL: true,
+  ENABLE_GITHUB_WORKFLOW_TOOL: true,
+  // Phase 10: Context extraction tools all enabled by default
+  ENABLE_CONTEXT_EXTRACTOR_TOOL: true,
+  ENABLE_CODE_ANALYZER_TOOL: true,
+  ENABLE_GIT_HISTORY_ANALYZER_TOOL: true,
   ENABLE_WEB_SEARCH_TOOL: false, // Disabled by default
+  // Phase 29: Buddy companion enabled by default
+  ENABLE_BUDDY: true,
 
   // Experimental features disabled by default  
   ENABLE_STREAMING: false,
@@ -94,9 +124,19 @@ export function getFeatureFlags(): FeatureFlags {
     ENABLE_TREE_TOOL: getFlag('ENABLE_TREE_TOOL'),
     ENABLE_GIT_STATUS_TOOL: getFlag('ENABLE_GIT_STATUS_TOOL'),
     ENABLE_GIT_DIFF_TOOL: getFlag('ENABLE_GIT_DIFF_TOOL'),
-    ENABLE_PR_HELPER_TOOL: getFlag('ENABLE_PR_HELPER_TOOL'),
-    ENABLE_BRANCH_HELPER_TOOL: getFlag('ENABLE_BRANCH_HELPER_TOOL'),
+    ENABLE_GIT_LOG_TOOL: getFlag('ENABLE_GIT_LOG_TOOL'),
+    ENABLE_GIT_BRANCH_TOOL: getFlag('ENABLE_GIT_BRANCH_TOOL'),
+    ENABLE_GIT_ADD_TOOL: getFlag('ENABLE_GIT_ADD_TOOL'),
+    ENABLE_GIT_COMMIT_TOOL: getFlag('ENABLE_GIT_COMMIT_TOOL'),
+    ENABLE_GITHUB_PR_HELPER_TOOL: getFlag('ENABLE_GITHUB_PR_HELPER_TOOL'),
+    ENABLE_GITHUB_ISSUE_TEMPLATE_TOOL: getFlag('ENABLE_GITHUB_ISSUE_TEMPLATE_TOOL'),
+    ENABLE_GITHUB_RELEASE_TOOL: getFlag('ENABLE_GITHUB_RELEASE_TOOL'),
+    ENABLE_GITHUB_WORKFLOW_TOOL: getFlag('ENABLE_GITHUB_WORKFLOW_TOOL'),
+    ENABLE_CONTEXT_EXTRACTOR_TOOL: getFlag('ENABLE_CONTEXT_EXTRACTOR_TOOL'),
+    ENABLE_CODE_ANALYZER_TOOL: getFlag('ENABLE_CODE_ANALYZER_TOOL'),
+    ENABLE_GIT_HISTORY_ANALYZER_TOOL: getFlag('ENABLE_GIT_HISTORY_ANALYZER_TOOL'),
     ENABLE_WEB_SEARCH_TOOL: getFlag('ENABLE_WEB_SEARCH_TOOL'),
+    ENABLE_BUDDY: getFlag('ENABLE_BUDDY'),
     ENABLE_STREAMING: getFlag('ENABLE_STREAMING'),
     ENABLE_MULTI_TURN: getFlag('ENABLE_MULTI_TURN'),
     ENABLE_CACHING: getFlag('ENABLE_CACHING'),
@@ -126,10 +166,22 @@ export function getAvailableTools(): Record<string, boolean> {
     grep: flags.ENABLE_GREP_TOOL,
     find: flags.ENABLE_FIND_TOOL,
     tree: flags.ENABLE_TREE_TOOL,
+    // Phase 9: Git tools
     gitStatus: flags.ENABLE_GIT_STATUS_TOOL,
     gitDiff: flags.ENABLE_GIT_DIFF_TOOL,
-    prHelper: flags.ENABLE_PR_HELPER_TOOL,
-    branchHelper: flags.ENABLE_BRANCH_HELPER_TOOL,
+    gitLog: flags.ENABLE_GIT_LOG_TOOL,
+    gitBranch: flags.ENABLE_GIT_BRANCH_TOOL,
+    gitAdd: flags.ENABLE_GIT_ADD_TOOL,
+    gitCommit: flags.ENABLE_GIT_COMMIT_TOOL,
+    // Phase 9: GitHub tools
+    githubPRHelper: flags.ENABLE_GITHUB_PR_HELPER_TOOL,
+    githubIssueTemplate: flags.ENABLE_GITHUB_ISSUE_TEMPLATE_TOOL,
+    githubRelease: flags.ENABLE_GITHUB_RELEASE_TOOL,
+    githubWorkflow: flags.ENABLE_GITHUB_WORKFLOW_TOOL,
+    // Phase 10: Context extraction tools
+    contextExtractor: flags.ENABLE_CONTEXT_EXTRACTOR_TOOL,
+    codeAnalyzer: flags.ENABLE_CODE_ANALYZER_TOOL,
+    gitHistoryAnalyzer: flags.ENABLE_GIT_HISTORY_ANALYZER_TOOL,
     websearch: flags.ENABLE_WEB_SEARCH_TOOL,
   }
 }

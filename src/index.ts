@@ -31,9 +31,21 @@ export { listdirTool, listdirSchema } from './tools/listdir.js'
 export { grepTool, grepSchema } from './tools/grep.js'
 export { findTool, findSchema } from './tools/find.js'
 export { treeTool, treeSchema } from './tools/tree.js'
-// Phase 9: Git & GitHub Tools - TODO: Fix schema exports
-// export { gitStatusTool, gitStatusSchema } from './tools/git.js'
-// export { githubPRHelperTool, githubPRHelperSchema } from './tools/github.js'
+// Phase 9: Git & GitHub Tools
+export { 
+  gitStatusTool, gitStatusSchema,
+  gitDiffTool, gitDiffSchema,
+  gitLogTool, gitLogSchema,
+  gitBranchTool, gitBranchSchema,
+  gitAddTool, gitAddSchema,
+  gitCommitTool, gitCommitSchema
+} from './tools/git.js'
+export { 
+  githubPRHelperTool, githubPRHelperSchema,
+  githubIssueTemplateTool, githubIssueTemplateSchema,
+  githubReleaseTool, githubReleaseSchema,
+  githubWorkflowTool, githubWorkflowSchema
+} from './tools/github.js'
 // Phase 10: Context Extraction
 export { contextExtractorTool, contextExtractorSchema } from './tools/contextExtractor.js'
 export { codeAnalyzerTool, codeAnalyzerSchema } from './tools/codeAnalyzer.js'
@@ -50,10 +62,33 @@ export { audioProcessorTool, audioProcessorSchema } from './tools/audioProcessor
 export { semanticSearchTool, semanticSearchSchema } from './tools/semantic-search.js'
 export { diagnosticEngineTool, diagnosticEngineSchema } from './tools/diagnostic-engine.js'
 export { optimizationSuggesterTool, optimizationSuggesterSchema } from './tools/optimization-suggester.js'
+// Phase 17: Monitoring & Cost Tracking
+export { costTrackingTool, costTrackingSchema } from './tools/cost-tracking.js'
+export { performanceMetricsTool, performanceMetricsSchema } from './tools/performance-metrics.js'
+export { usageAnalyticsTool, usageAnalyticsSchema } from './tools/usage-analytics.js'
+export { costPredictionTool, costPredictionSchema } from './tools/cost-prediction.js'
+// Phase 15: Agent Teams & Coordination
+export { teamCoordinatorTool, teamCoordinatorSchema } from './tools/team-coordinator.js'
+export { taskDelegationTool, taskDelegationSchema } from './tools/task-delegation.js'
+export { workflowOrchestratorTool, workflowOrchestratorSchema } from './tools/workflow-orchestrator.js'
+// Phase 14: Skills & Plugins System
+export { skillRegistryTool, skillRegistrySchema } from './tools/skill-registry.js'
+export { pluginLoaderTool, pluginLoaderSchema } from './tools/plugin-loader.js'
+export { skillSpecializationTool, skillSpecializationSchema } from './tools/skill-specialization.js'
+// Phase 13: Memory & Learning System
+export { memoryStorageTool, memoryStorageSchema } from './tools/memory-storage.js'
+export { patternLearningTool, patternLearningSchema } from './tools/pattern-learning.js'
+export { experienceReplayTool, experienceReplaySchema } from './tools/experience-replay.js'
+// Phase 16: Desktop/Mobile Apps
+export { deviceCoordinatorTool, deviceCoordinatorSchema } from './tools/device-coordinator.js'
+export { sessionHandoffTool, sessionHandoffSchema } from './tools/session-handoff.js'
+export { remoteExecutionTool, remoteExecutionSchema } from './tools/remote-execution.js'
 export { AgentTUI, launchTUI } from './tui/index.js'
 export type { TUIConfig } from './tui/index.js'
 export * from './providers/index.js'
 export * from './utils/index.js'
+// Phase 29: Buddy Companion System
+export * from './buddy/index.js'
 
 /**
  * Main Agent class

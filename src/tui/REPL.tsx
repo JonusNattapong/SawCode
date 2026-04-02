@@ -1,13 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
 import Spinner from 'ink-spinner';
 import TextInput from 'ink-text-input';
 import type { Agent } from '../index.js';
 import { parseMarkdown } from '../utils/markdown-parser.js';
 import { formatCodeBlock, formatError } from '../utils/code-formatter.js';
+import { isFeatureEnabled } from '../utils/feature-flags.js';
+import {
+  type Companion,
+  hatchCompanion,
+  getCompanion,
+  CompanionSprite,
+  companionQuip,
+  formatCompanionCard,
+} from '../buddy/index.js';
 
 interface Message {
-  role: 'user' | 'assistant' | 'system' | 'tool' | 'help' | 'info' | 'code' | 'streaming';
+  role: 'user' | 'assistant' | 'system' | 'tool' | 'help' | 'info' | 'code' | 'streaming' | 'buddy';
   content: string;
   isStreaming?: boolean;
 }
@@ -23,6 +32,29 @@ const REPL: React.FC<AppProps> = ({ agent }: AppProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Buddy state
+  const [companion, setCompanion] = useState<Companion | undefined>();
+  const [buddyReaction, setBuddyReaction] = useState<string | undefined>();
+  const [petAt, setPetAt] = useState<number | undefined>();
+
+  const buddyEnabled = isFeatureEnabled('ENABLE_BUDDY');
+
+  // Initialize buddy
+  useEffect(() => {
+    if (!buddyEnabled) return;
+    const userId = process.env.USER || process.env.USERNAME || 'sawcode-user';
+    const stored = undefined;
+    const comp = getCompanion(userId, stored) || hatchCompanion(userId);
+    setCompanion(comp);
+  }, [buddyEnabled]);
+
+  // Buddy quip on events
+  const buddySay = useCallback((text: string) => {
+    if (!buddyEnabled) return;
+    setBuddyReaction(text);
+    setTimeout(() => setBuddyReaction(undefined), 10000);
+  }, [buddyEnabled]);
+
   // Load initial history
   useEffect(() => {
     const history = agent.getMessages().map((msg: any) => ({
@@ -31,7 +63,6 @@ const REPL: React.FC<AppProps> = ({ agent }: AppProps) => {
     }));
     setMessages(history);
     
-    // Show welcome
     setMessages(prev => [
       ...prev,
       {
@@ -39,6 +70,13 @@ const REPL: React.FC<AppProps> = ({ agent }: AppProps) => {
         content: '🤖 SawCode Agent - Type /help for commands',
       }
     ]);
+
+    // Buddy welcome
+    if (buddyEnabled && companion) {
+      setTimeout(() => {
+        buddySay(companionQuip(companion));
+      }, 1000);
+    }
   }, [agent]);
 
   const handleCommand = (cmd: string): boolean => {
@@ -57,6 +95,9 @@ const REPL: React.FC<AppProps> = ({ agent }: AppProps) => {
   /history            Show conversation history
   /clear              Clear conversation history
   /tools              List available tools
+  /buddy              Show companion card
+  /buddy pet          Pet your companion
+  /buddy quip         Make companion say something
   /exit, /quit        Exit the TUI
   
 Just type your message to chat with the agent!`,
@@ -108,6 +149,32 @@ Just type your message to chat with the agent!`,
         }
         return true;
 
+      case '/buddy':
+        if (!buddyEnabled || !companion) {
+          setMessages(prev => [
+            ...prev,
+            { role: 'info', content: '❌ Buddy system is disabled. Set ENABLE_BUDDY=true to enable.' }
+          ]);
+          return true;
+        }
+        const subCmd = parts[1]?.toLowerCase();
+        if (subCmd === 'pet') {
+          setPetAt(Date.now());
+          setMessages(prev => [
+            ...prev,
+            { role: 'buddy', content: `You petted ${companion.name}! ♥` }
+          ]);
+          buddySay('♥ ♥ ♥');
+        } else if (subCmd === 'quip') {
+          buddySay(companionQuip(companion));
+        } else {
+          setMessages(prev => [
+            ...prev,
+            { role: 'buddy', content: formatCompanionCard(companion) }
+          ]);
+        }
+        return true;
+
       case '/exit':
       case '/quit':
         exit();
@@ -121,48 +188,42 @@ Just type your message to chat with the agent!`,
   const handleSubmit = async (value: string) => {
     if (!value.trim()) return;
     
-    // Add user message
     const userMsg: Message = { role: 'user', content: value };
     setMessages((prev: Message[]) => [...prev, userMsg]);
     setQuery('');
 
-    // Check for commands
     if (value.startsWith('/')) {
       if (handleCommand(value)) {
         return;
       }
     }
 
-    // Process as query
     setIsProcessing(true);
     setError(null);
 
+    // Buddy reacts to user input
+    if (buddyEnabled && companion && Math.random() < 0.3) {
+      buddySay(companionQuip(companion));
+    }
+
     try {
-      // Add streaming indicator
       const streamingMsg: Message = { role: 'streaming', content: '⠋ Streaming response...', isStreaming: true };
       setMessages((prev: Message[]) => [...prev, streamingMsg]);
 
-      // Collect streaming result
       let fullResponse = '';
-
-      // Simulate streaming for now (until we integrate real streaming)
       const result = await agent.query(value);
       fullResponse = result.response;
 
-      // Parse markdown to detect code blocks
       const parsed = parseMarkdown(fullResponse);
       
-      // Remove streaming indicator
       setMessages((prev: Message[]) => prev.slice(0, -1));
 
-      // Add formatted response
       const assistantMsg: Message = { 
         role: parsed.hasCode ? 'code' : 'assistant', 
         content: fullResponse 
       };
       setMessages((prev: Message[]) => [...prev, assistantMsg]);
 
-      // If there are code blocks, add them separately
       if (parsed.blocks.length > 0) {
         for (let i = 0; i < parsed.blocks.length; i++) {
           const codeMsg: Message = {
@@ -172,13 +233,15 @@ Just type your message to chat with the agent!`,
           setMessages((prev: Message[]) => [...prev, codeMsg]);
         }
       }
+
+      // Buddy reacts to response
+      if (buddyEnabled && companion && Math.random() < 0.2) {
+        setTimeout(() => buddySay(companionQuip(companion)), 2000);
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       setError(errorMsg);
-
-      // Remove streaming indicator
       setMessages((prev: Message[]) => prev.slice(0, -1));
-
       setMessages((prev: Message[]) => [
         ...prev,
         { role: 'tool', content: formatError('Error', errorMsg) }
@@ -199,7 +262,22 @@ Just type your message to chat with the agent!`,
       {/* Header */}
       <Box borderStyle="round" borderColor="cyan" paddingX={1} marginBottom={1}>
         <Text bold color="cyan">🤖 SawCode Agent (Claude Code-style TUI)</Text>
+        {buddyEnabled && companion && (
+          <Text color="gray"> • 🐾 {companion.name} ({companion.species})</Text>
+        )}
       </Box>
+
+      {/* Buddy sprite area */}
+      {buddyEnabled && companion && (
+        <Box marginBottom={1} flexDirection="row" alignItems="flex-end">
+          <CompanionSprite
+            companion={companion}
+            reaction={buddyReaction}
+            petAt={petAt}
+            compact={false}
+          />
+        </Box>
+      )}
 
       {/* Messages */}
       <Box flexDirection="column" marginBottom={1} width="100%">
@@ -236,12 +314,15 @@ Just type your message to chat with the agent!`,
               msgColor = 'gray';
               prefix = 'ℹ️  ';
               break;
+            case 'buddy':
+              msgColor = 'magenta';
+              prefix = '🐾 ';
+              break;
             default:
               msgColor = 'white';
               prefix = '• ';
           }
 
-          // Format code blocks specially
           if (msg.role === 'code') {
             return (
               <Box key={i} marginBottom={1} flexDirection="column" width="100%">
@@ -255,10 +336,10 @@ Just type your message to chat with the agent!`,
           return (
             <Box key={i} marginBottom={0.5} flexDirection="column" width="100%">
               <Box>
-                <Text bold color={msgColor}>
+                <Text bold color={msgColor as any}>
                   {prefix}
                 </Text>
-                <Text color={msgColor} wrap="wrap">
+                <Text color={msgColor as any} wrap="wrap">
                   {msg.content}
                 </Text>
               </Box>
@@ -300,6 +381,7 @@ Just type your message to chat with the agent!`,
       <Box>
         <Text color="gray" dimColor>
           Esc or Ctrl+C to exit • /help for commands
+          {buddyEnabled && companion && ` • /buddy for ${companion.name}`}
         </Text>
       </Box>
     </Box>
