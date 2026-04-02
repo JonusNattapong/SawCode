@@ -20,6 +20,8 @@
 import type { AgentConfig, AgentMessage, AgentState, QueryOptions, QueryResult, ToolDefinition } from './types.js'
 import { createRegistry } from './tools/index.js'
 import { handleQuery, handleToolResult } from './handlers/query.js'
+import { createStore, type Store } from './state/store.js'
+import { createDefaultTUIState, type SawCodeAppState, type TUIState, type TUIVariant } from './state/types.js'
 
 export * from './types.js'
 export { createTool, createRegistry, getTool, listTools } from './tools/index.js'
@@ -93,21 +95,29 @@ export { AgentTUI, launchTUI } from './tui/index.js'
 export type { TUIConfig } from './tui/index.js'
 export * from './providers/index.js'
 export * from './utils/index.js'
+export * from './state/store.js'
+export { getAgentState, getAgentMessages, getAvailableTools } from './state/selectors.js'
+export * from './state/types.js'
+export * from './state/AppState.js'
+export * from './bridge/index.js'
+// Services (from Claude Code reference)
+export * from './services/index.js'
 // Phase 29: Buddy Companion System
 export * from './buddy/index.js'
 // Phase 30: Voice Live Recording + Streaming STT
 export * from './voice/index.js'
+// Phase 31: UI Component Library
+export * from './components/index.js'
 
 /**
  * Main Agent class
  */
 export class Agent {
-  private state: AgentState
+  private store: Store<SawCodeAppState>
 
   constructor(config: AgentConfig = {}) {
     const tools = config.tools || []
-
-    this.state = {
+    const initialAgentState: AgentState = {
       messages: [],
       config: {
         model: config.model || 'qwen3-coder-next:cloud',
@@ -117,55 +127,83 @@ export class Agent {
       },
       toolRegistry: createRegistry(tools),
     }
+
+    this.store = createStore({
+      agent: initialAgentState,
+      tui: createDefaultTUIState(),
+    })
   }
 
   /**
    * Get current message history
    */
   getMessages(): AgentMessage[] {
-    return this.state.messages
+    return this.store.getState().agent.messages
   }
 
   /**
    * Clear message history
    */
   clearHistory(): void {
-    this.state.messages = []
+    this.store.setState(prev => ({
+      ...prev,
+      agent: {
+        ...prev.agent,
+        messages: [],
+      },
+    }))
   }
 
   /**
    * Add a tool to the agent
    */
   addTool(tool: ToolDefinition): void {
-    this.state.toolRegistry.set(tool.name, tool)
+    this.store.setState(prev => {
+      const toolRegistry = new Map(prev.agent.toolRegistry)
+      toolRegistry.set(tool.name, tool)
+
+      return {
+        ...prev,
+        agent: {
+          ...prev.agent,
+          toolRegistry,
+        },
+      }
+    })
   }
 
   /**
    * Get configuration
    */
   getConfig(): AgentConfig {
-    return this.state.config
+    return this.store.getState().agent.config
   }
 
   /**
    * Get available tools
    */
   getTools(): ToolDefinition[] {
-    return Array.from(this.state.toolRegistry.values())
+    return Array.from(this.store.getState().agent.toolRegistry.values())
   }
 
   /**
    * Update configuration
    */
   updateConfig(config: Partial<AgentConfig>): void {
-    this.state.config = { ...this.state.config, ...config }
+    this.store.setState(prev => ({
+      ...prev,
+      agent: {
+        ...prev.agent,
+        config: { ...prev.agent.config, ...config },
+      },
+    }))
   }
 
   /**
    * Query the agent with a message
    */
   async query(message: string, options?: QueryOptions): Promise<QueryResult> {
-    return handleQuery(this.state, message, options)
+    return handleQuery(this.store, message, options)
   }
 
   /**
@@ -176,17 +214,18 @@ export class Agent {
     toolName: string,
     toolArgs: Record<string, unknown>,
   ): Promise<QueryResult> {
-    return handleToolResult(this.state, toolUseId, toolName, toolArgs)
+    return handleToolResult(this.store, toolUseId, toolName, toolArgs)
   }
 
   /**
    * Export state for persistence
    */
   exportState(): AgentState {
+    const state = this.store.getState().agent
     return {
-      messages: [...this.state.messages],
-      config: { ...this.state.config },
-      toolRegistry: new Map(this.state.toolRegistry),
+      messages: [...state.messages],
+      config: { ...state.config },
+      toolRegistry: new Map(state.toolRegistry),
     }
   }
 
@@ -194,11 +233,40 @@ export class Agent {
    * Import state for resuming
    */
   importState(state: AgentState): void {
-    this.state = {
-      messages: [...state.messages],
-      config: { ...state.config },
-      toolRegistry: new Map(state.toolRegistry),
-    }
+    this.store.setState(prev => ({
+      ...prev,
+      agent: {
+        messages: [...state.messages],
+        config: { ...state.config },
+        toolRegistry: new Map(state.toolRegistry),
+      },
+    }))
+  }
+
+  getStore(): Store<SawCodeAppState> {
+    return this.store
+  }
+
+  getTUIState(): TUIState {
+    return this.store.getState().tui
+  }
+
+  updateTUIState(updater: (prev: TUIState) => TUIState): void {
+    this.store.setState(prev => ({
+      ...prev,
+      tui: updater(prev.tui),
+    }))
+  }
+
+  setTUIVariant(variant: TUIVariant): void {
+    this.updateTUIState(prev => ({
+      ...prev,
+      variant,
+    }))
+  }
+
+  get toolRegistry() {
+    return this.store.getState().agent.toolRegistry
   }
 }
 
