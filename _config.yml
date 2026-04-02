@@ -1,0 +1,14 @@
+theme: jekyll-theme-slate
+title: SawCode
+description: Claude Code Agent Framework - Bun + TypeScript
+docs_dir: docs
+exclude:
+  - examples/
+  - src/
+  - dist/
+  - node_modules/
+  - .git/
+
+show_downloads: true
+github:
+  is_project_page: true

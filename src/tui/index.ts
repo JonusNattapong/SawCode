@@ -8,12 +8,23 @@
 import * as readline from 'readline'
 import type { Agent } from '../index.js'
 import type { ToolDefinition } from '../types.js'
+import React from 'react'
+import { render } from 'ink'
+import REPL from './REPL.js'
 
 export interface TUIConfig {
   prompt?: string
   showWelcome?: boolean
   showHelp?: boolean
   maxHistoryLines?: number
+}
+
+/**
+ * Launch the Ink-based TUI
+ */
+export async function launchTUI(agent: Agent, _config: TUIConfig = {}): Promise<void> {
+  const { waitUntilExit } = render(React.createElement(REPL, { agent }));
+  await waitUntilExit();
 }
 
 export class AgentTUI {
@@ -307,11 +318,3 @@ export class AgentTUI {
   }
 }
 
-/**
- * Launch TUI with an agent
- */
-export async function launchTUI(agent: Agent, config?: TUIConfig): Promise<void> {
-  const tui = new AgentTUI(agent, config)
-  await tui.start()
-  tui.stop()
-}

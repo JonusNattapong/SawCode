@@ -48,6 +48,31 @@ export function listTools(registry: ToolRegistry): ToolDefinition[] {
   return Array.from(registry.values())
 }
 
-// Export built-in tools
+// Export all tools
 export * from './bash.js'
 export * from './webfetch.js'
+export * from './fileread.js'
+export * from './filewrite.js'
+export * from './listdir.js'
+export * from './grep.js'
+export * from './find.js'
+export * from './tree.js'
+// Phase 9: Git & GitHub Tools
+export * from './git.js'
+export * from './github.js'
+// Phase 10: Context Extraction
+export * from './contextExtractor.js'
+export * from './codeAnalyzer.js'
+export * from './gitHistoryAnalyzer.js'
+// Phase 11: Code Review
+export * from './codeReviewer.js'
+export * from './suggestionEngine.js'
+export * from './complianceChecker.js'
+// Phase 12: Voice & Audio
+export * from './speechToText.js'
+export * from './textToSpeech.js'
+export * from './audioProcessor.js'
+// Phase 18: AI-Powered Features
+export * from './semantic-search.js'
+export * from './diagnostic-engine.js'
+export * from './optimization-suggester.js'

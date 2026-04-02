@@ -16,6 +16,26 @@ Primary runtime: **Bun 1.0+** (preferred) or Node.js 20+
 Build output: `dist/` directory
 Module system: ESM (ES modules)
 
+## Project Phases
+
+**Completed Phases:**
+- ✅ **Phase 1**: Core Agent Framework + state persistence
+- ✅ **Phase 2**: Tool Ecosystem (fileread, filewrite, listdir)
+- ✅ **Phase 3**: Advanced Features (error classes, feature flags, logging)
+- ✅ **Phase 4**: CLI Integration + feature flags
+- ✅ **Phase 5**: Documentation organization (GitHub Pages)
+- ✅ **Phase 6**: CI/CD Infrastructure + landing page website
+- ✅ **Phase 7**: Code Writing Enhancement (markdown parsing, syntax highlighting, streaming)
+- ✅ **Phase 8**: Search & Navigation Tools (grep, find, tree for code exploration)
+- ✅ **Phase 9**: Git & GitHub Integration (status, diff, PR helper, branch management)
+- ✅ **Phase 10**: Context Extraction (file/directory context, code analysis, git history)
+- ✅ **Phase 11**: Code Review (automated review, suggestions, compliance checking)
+
+**Current Status:** Production-ready with code review and compliance checking
+
+**Latest Addition (Phase 10):**
+Context extraction tools for AI understanding: contextExtractor (file/directory context), codeAnalyzer (structure analysis), gitHistoryAnalyzer (development patterns).
+
 ## Development Commands
 
 ### Essential Commands
@@ -272,6 +292,82 @@ These are production-tested utilities copied from the official Claude Code. Trus
 - `loadEnvConfig()` - Load all env config into typed object
 - `validateEnv()` - Validate required env vars
 
+## Phase 7: Code Display & Streaming Utilities
+
+**Phase 7** adds professional code display capabilities for writing code with syntax highlighting, streaming, and markdown parsing.
+
+### Markdown Parser (src/utils/markdown-parser.ts)
+- `parseMarkdown()` - Extract code blocks from markdown
+- `formatCodeBlockSimple()` - Basic code block formatting
+- `detectLanguage()` - Guess language from code
+- `extractAllCode()` - Get all code concatenated
+- `hasCodeContent()` - Check if markdown has code
+- `getCodeBlockCount()` - Count code blocks
+- `formatInlineCode()` - Inline code formatting
+
+Usage:
+```typescript
+const { parseMarkdown } = await import('@sawcode/agent')
+const parsed = parseMarkdown(response)
+// parsed.blocks - Array of CodeBlock objects
+// parsed.hasCode - Boolean
+// parsed.text - Prose without code
+```
+
+### Syntax Highlighter (src/utils/syntax-highlighter.ts)
+- `highlight()` - Apply ANSI color highlighting
+- `colorize()` - Wrap text with color codes
+- `createBox()` - Create bordered colored box
+- `getTokenColor()` - Get color for token type
+- `colors` - Export all ANSI codes
+
+Supported Languages: typescript, javascript, bash, python, json, yaml, plaintext
+
+Token Types (automatically colored):
+- Keywords (magenta, bold)
+- Strings (green)
+- Numbers (yellow)
+- Comments (dim)
+- Functions (bright blue)
+
+### Code Formatter (src/utils/code-formatter.ts)
+- `formatCodeBlock()` - Code with line numbers + syntax highlighting
+- `formatCodeBlocks()` - Multiple code blocks indexed
+- `formatInlineCode()` - Inline code snippet
+- `formatError()` - Error message box
+- `formatWarning()` - Warning message box
+- `formatInfo()` - Info message box
+- `formatSuccess()` - Success message box
+- `formatToolResult()` - Tool execution display
+- `formatDiff()` - Diff viewer (removed/added/context)
+- `formatList()` - Bullet list with title
+- `formatKeyValue()` - Key-value pairs display
+- `formatTable()` - Formatted table
+- `formatStreaming()` - Progress indicator
+
+### Streaming Handler (src/handlers/streaming.ts)
+- `streamQuery()` - Async generator yielding stream events
+- `collectStream()` - Collect all chunks into final string
+- `streamWithProgress()` - Stream with progress callback
+- `streamLines()` - Stream with line-by-line processing
+- `streamFormatted()` - Stream with markdown detection
+
+Stream Event Types:
+- `'start'` - Stream beginning
+- `'text'` - Text chunk received
+- `'tool_use'` - Tool being invoked
+- `'end'` - Stream complete
+- `'error'` - Error occurred
+
+Usage:
+```typescript
+for await (const event of streamQuery(state, prompt)) {
+  if (event.type === 'text') {
+    process.stdout.write(event.delta || '')  // Real-time output
+  }
+}
+```
+
 ## Important Files & Patterns
 
 ### src/types.ts
@@ -318,6 +414,101 @@ Example provider for external API:
 - Demonstrates provider pattern for extensions
 
 Copy this pattern when adding new providers.
+
+## Phase 7 Files
+
+### Phase 7 Core Utilities
+
+**src/utils/markdown-parser.ts** (147 lines)
+- Parse markdown responses and extract code blocks
+- Detect language from ```typescript markers
+- Separate prose content from code
+
+**src/utils/syntax-highlighter.ts** (222 lines)
+- ANSI terminal color codes
+- Language-specific token highlighting
+- Colored box and formatting helpers
+
+**src/utils/code-formatter.ts** (307 lines)
+- Professional code display with line numbers
+- 11+ message formatting functions
+- Streaming progress indicators
+
+**src/handlers/streaming.ts** (267 lines)
+- Real-time streaming from Claude API
+- Event-based stream processing
+- Progress callbacks and formatted output
+
+### Phase 7 Example
+
+**examples/phase7-code-writing.ts** (220+ lines)
+- 7 comprehensive examples
+- Demonstrates all Phase 7 features
+- Run with: `bun examples/phase7-code-writing.ts`
+
+### Phase 7 Documentation
+
+**docs/PHASE7.md** (300+ lines)
+- Complete Phase 7 feature overview
+- Usage examples for each module
+- Before/after comparison
+- Integration checklist
+
+## Phase 8 Files
+
+### Phase 8 Core Tools
+
+**src/tools/grep.ts** (172 lines)
+- Text/regex pattern search in files
+- Recursive directory traversal
+- Binary file detection
+- Case-insensitive matching option
+
+**src/tools/find.ts** (148 lines)
+- File search with wildcard support (* and ?)
+- Type filtering (file/dir/any)
+- Recursive traversal with result limit
+- Pattern-to-regex conversion
+
+**src/tools/tree.ts** (159 lines)
+- Project structure visualization with ASCII tree
+- 15+ file type emoji icons
+- Depth-limited traversal
+- Smart ignore patterns (node_modules, dist, .git, etc.)
+
+### Phase 8 Integration
+
+**src/utils/feature-flags.ts** (UPDATED)
+- Added: ENABLE_GREP_TOOL, ENABLE_FIND_TOOL, ENABLE_TREE_TOOL flags
+- All Phase 8 tools enabled by default
+- Feature flags: SAWCODE_ENABLE_*_TOOL environment variables
+
+**src/cli.ts** (UPDATED)
+- Imported Phase 8 tools (grepTool, findTool, treeTool)
+- Updated buildToolsFromFlags() to conditionally add Phase 8 tools
+- Feature flag integration for selective tool loading
+
+**src/index.ts** (UPDATED)
+- Added exports: grepTool, grepSchema
+- Added exports: findTool, findSchema
+- Added exports: treeTool, treeSchema
+
+### Phase 8 Example
+
+**examples/phase8-search-tools.ts** (154 lines)
+- 5 comprehensive examples: grep, find, tree, workflow, queries
+- Demonstrates all Phase 8 tool capabilities
+- Combined workflow showing code exploration pattern
+- Run with: `bun examples/phase8-search-tools.ts`
+
+### Phase 8 Documentation
+
+**docs/PHASE8.md** (comprehensive guide)
+- Complete Phase 8 feature overview
+- Individual tool reference with APIs
+- Wildcard patterns and emoji icon guide
+- Integration patterns and performance tips
+- Future enhancement suggestions (Phase 9+)
 
 ## Testing & Validation
 
@@ -477,6 +668,9 @@ Common causes:
 
 - **README.md** - Quick start, usage examples, API reference
 - **DEVELOPMENT.md** - Extended development guide with tool examples
+- **SUMMARY.md** - Complete project overview (all 7 phases)
+- **PHASE7_SUMMARY.md** - Phase 7 completion status
+- **docs/PHASE7.md** - Code writing enhancement documentation
 - **docs/ENV.md** - Environment configuration details
 - **docs/TUI.md** - Interactive TUI user guide
 - **docs/KILOCODE.md** - KiloCode API integration guide
@@ -488,8 +682,13 @@ Key files to understand the codebase:
 - `src/index.ts` - Agent class definition
 - `src/types.ts` - Core type definitions (read first)
 - `src/handlers/query.ts` - Query processing logic
+- `src/handlers/streaming.ts` - Streaming response handling (Phase 7)
 - `src/tools/index.ts` - Tool factory and registry
 - `src/utils/` - Foundation utilities from Claude Code reference
+- `src/utils/markdown-parser.ts` - Markdown parsing (Phase 7)
+- `src/utils/syntax-highlighter.ts` - Syntax highlighting (Phase 7)
+- `src/utils/code-formatter.ts` - Code formatting (Phase 7)
+- `src/tui/REPL.tsx` - Interactive TUI with code display (updated in Phase 7)
 - `tsconfig.json` - TypeScript configuration (strict mode enabled)
 - `package.json` - Scripts, dependencies, ESM exports
 
@@ -497,6 +696,7 @@ Excluded from build: `examples/`, `tests/`, `dist/`, `node_modules/`
 
 ---
 
-**Last Updated**: April 2026
+**Last Updated**: April 2, 2026  
+**Status**: ✅ Complete (8 phases, production-ready)
 **Framework**: Bun + TypeScript (ESM, Strict Mode)
 **Primary Utilities**: From Claude Code Reference (battle-tested)

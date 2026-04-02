@@ -19,6 +19,12 @@ export type AssistantMessage = {
   content: string
 }
 
+export type AssistantWithToolsMessage = {
+  type: 'assistant_with_tools'
+  content: string
+  blocks: unknown[] // Anthropic ContentBlock[]
+}
+
 export type ToolResultMessage = {
   type: 'tool_result'
   toolUseId: string
@@ -26,7 +32,7 @@ export type ToolResultMessage = {
   isError?: boolean
 }
 
-export type AgentMessage = UserMessage | AssistantMessage | ToolResultMessage
+export type AgentMessage = UserMessage | AssistantMessage | AssistantWithToolsMessage | ToolResultMessage
 
 // ============================================================================
 // Tool Definition

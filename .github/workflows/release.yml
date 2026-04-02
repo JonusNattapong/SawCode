@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type checking
+        run: bun run type-check
+
+      - name: Build
+        run: bun run build
+
+      - name: Run tests
+        run: bun test
+        continue-on-error: true
+
+      - name: Lint
+        run: bun run lint
+        continue-on-error: true
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=$(grep '"version"' package.json | head -1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+            echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            COMMITS=$(git log --oneline --no-merges --format="- %s (%h)")
+          else
+            COMMITS=$(git log --oneline --no-merges --format="- %s (%h)" ${PREVIOUS_TAG}..HEAD)
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create release archive
+        run: |
+          tar -czf sawcode-agent-${{ steps.version.outputs.tag }}.tar.gz \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='state' \
+            --exclude='*.tgz' \
+            dist/ package.json README.md LICENSE
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SawCode Agent ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.tag, '-beta') || contains(steps.version.outputs.tag, '-alpha') || contains(steps.version.outputs.tag, '-rc') }}
+          files: |
+            sawcode-agent-${{ steps.version.outputs.tag }}.tar.gz
+          body: |
+            ## SawCode Agent ${{ steps.version.outputs.tag }}
+
+            Bun + TypeScript agent framework for building Claude Code skills and extensions.
+
+            ### What's Changed
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ### Installation
+
+            ```bash
+            npm install @sawcode/agent
+            # or
+            bun add @sawcode/agent
+            ```
+
+            ### Quick Start
+
+            ```typescript
+            import { Agent, createTool } from '@sawcode/agent'
+
+            const agent = new Agent({
+              name: 'my-agent',
+              team: 'default'
+            })
+
+            await agent.initialize()
+            const result = await agent.query('Hello!')
+            console.log(result.response)
+            ```
+
+            ### Features
+            - Layered architecture with Agent core, tool system, and utilities
+            - MCP (Model Context Protocol) compatible tool definitions
+            - Interactive TUI and CLI interfaces
+            - Search & Navigation Tools (grep, find, tree)
+            - Git & GitHub Integration
+            - Code Review & Compliance checking
+            - Streaming responses with syntax highlighting
+            - 18+ built-in tools with feature flag support

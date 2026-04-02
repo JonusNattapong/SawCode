@@ -17,7 +17,6 @@ looseEquality = false
 
 [test]
 # Test configuration
-preload = []
 snapshots = "./test/snapshots"
 timeout_ms = 5000
 

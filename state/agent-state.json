@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "type": "user",
+      "content": "What is 5 + 3?"
+    },
+    {
+      "type": "assistant",
+      "content": "5 + 3 = 8."
+    }
+  ],
+  "config": {
+    "model": "qwen3-coder-next:cloud",
+    "temperature": 0.7,
+    "maxTokens": 4096,
+    "systemPrompt": "You are a helpful AI assistant powered by Claude Code Agent."
+  }
+}

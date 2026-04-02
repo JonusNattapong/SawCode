@@ -1,69 +1,133 @@
-# SawCode: Claude Code Agent/Skill
+# SawCode: Claude Code Agent Framework
 
-A **Bun + TypeScript** based agent framework for building Claude Code skills and extensions.
+A **Bun + TypeScript** agent framework for building Claude Code skills with an interactive terminal UI.
 
-## 🚀 Quick Start
+> 📚 **Full Documentation at [SawCode Pages](https://github.com/JonusNattapong/SawCode/blob/main/docs/index.md)**
+
+## ✨ Quick Features
+
+- **🤖 Real Claude Agent** - Powered by Claude 3.5 Sonnet
+- **🔧 5 Built-in Tools** - bash, webfetch, fileread, filewrite, listdir  
+- **🚩 Feature Flags** - Control tools via `SAWCODE_*` environment variables
+- **📝 Structured Logging** - Debug with component-based logging
+- **💾 State Management** - Save and resume conversations
+- **⚡ Fast** - Bun runtime with TypeScript
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- **Bun** 1.0+ ([install](https://bun.sh))
-- **Node.js** 20+ (for compatibility)
-
-### Installation
 
 ```bash
-# Install dependencies
+# Bun 1.0+ (https://bun.sh)
+# Anthropic API Key (https://console.anthropic.com/account/keys)
+```
+
+### Setup
+
+```bash
+# Install
 bun install
 
-# Type check
-bun run type-check
+# Configure
+echo 'ANTHROPIC_API_KEY=sk-ant-...' > .env
 
-# Build
-bun run build
+# Run
+bun src/cli.ts                      # Interactive TUI
+bun src/cli.ts query "hello"        # Single query
+bun src/cli.ts tools                # List tools
 ```
 
-### Running Examples
+## 📖 Documentation
+
+All documentation is in the `/docs` folder:
+
+| Document | Purpose |
+|----------|---------|
+| **[docs/index.md](docs/index.md)** | Main documentation hub |
+| **[docs/guides/advanced-features.md](docs/guides/advanced-features.md)** | Feature flags, logging, conditional loading |
+| **[docs/guides/quick-reference.md](docs/guides/quick-reference.md)** | CLI commands reference |
+
+## 🧪 Try Examples
 
 ```bash
-# Run simple agent example
-bun run example
+# Test feature flags
+bun docs/examples/test-feature-flags.ts
 
-# Watch mode (development)
-bun run dev
+# Interactive guide
+bun docs/examples/feature-flags-guide.ts
 
-# Run tests
-bun test
+# Integration test
+bun docs/examples/integration-test.ts
 ```
 
-## 📦 Project Structure
+## 🔧 CLI Commands
 
+```bash
+# Interactive
+bun src/cli.ts
+
+# Query
+bun src/cli.ts query "what is 5+3?"
+
+# Tools
+bun src/cli.ts tools
+
+# History/Export
+bun src/cli.ts history
+bun src/cli.ts export json
+
+# State
+bun src/cli.ts reset
+bun src/cli.ts config
+
+# Help
+bun src/cli.ts help
 ```
-src/
-├── index.ts              # Main Agent class
-├── types.ts              # Type definitions
-├── tools/
-│   ├── index.ts          # Tool registry & factory
-│   ├── bash.ts           # Bash execution tool
-│   └── webfetch.ts       # HTTP request tool
-├── handlers/
-│   └── query.ts          # Message & tool handling
-└── utils/
-    └── logger.ts         # Logging utilities
 
-examples/
-└── simple-agent.ts       # Usage example
+## 🚩 Feature Flags
 
-dist/                     # Built output (generated)
+Control tools and features via environment variables:
+
+```bash
+# Disable file tools
+SAWCODE_ENABLE_FILE_TOOLS=false bun src/cli.ts tools
+
+# Show debug logs
+DEBUG=query-handler bun src/cli.ts query "test"
+
+# Disable bash
+SAWCODE_ENABLE_BASH_TOOL=false bun src/cli.ts tools
 ```
 
-## 💡 Usage
+**→ See [Advanced Features Guide](docs/guides/advanced-features.md) for all 13 flags**
 
-### Basic Agent
+## 🛠 Development
+
+```bash
+bun run type-check    # Type checking
+bun run build         # Build to dist/
+bun run lint          # Lint code
+bun run format        # Format code
+bun test              # Run tests
+```
+
+## 📦 Tools Available
+
+| Tool | Enabled | Flag |
+|------|---------|------|
+| bash | ✅ | `SAWCODE_ENABLE_BASH_TOOL` |
+| webfetch | ✅ | `SAWCODE_ENABLE_WEBFETCH_TOOL` |
+| fileread | ✅ | `SAWCODE_ENABLE_FILE_TOOLS` |
+| filewrite | ✅ | `SAWCODE_ENABLE_FILE_TOOLS` |
+| listdir | ✅ | `SAWCODE_ENABLE_FILE_TOOLS` |
+
+## 💻 Programmatic Usage
 
 ```typescript
-import { Agent, bashTool, webfetchTool } from '@sawcode/agent'
+import { Agent, bashTool, webfetchTool } from './src/index.js'
 
 const agent = new Agent({
-  model: 'claude-opus-4-6',
+  model: 'claude-3-5-sonnet-20241022',
   tools: [bashTool, webfetchTool],
 })
 
@@ -71,232 +135,48 @@ const result = await agent.query('What time is it?')
 console.log(result.response)
 ```
 
-### Custom Tools
+## 📂 Project Structure
 
-```typescript
-import { createTool } from '@sawcode/agent'
-import { z } from 'zod'
-
-const calculatorTool = createTool(
-  'calculator',
-  'Add two numbers together',
-  z.object({
-    a: z.number(),
-    b: z.number(),
-  }),
-  async ({ a, b }) => ({
-    type: 'text',
-    text: `${a} + ${b} = ${a + b}`,
-  })
-)
-
-agent.addTool(calculatorTool)
+```
+SawCode/
+├── docs/                    # 📚 All documentation (GitHub Pages)
+│   ├── index.md            # Main documentation
+│   ├── guides/             # Full guides
+│   └── examples/           # Example scripts
+├── src/                    # TypeScript source
+│   ├── index.ts            # Main Agent
+│   ├── cli.ts              # CLI entry
+│   ├── tools/              # Built-in tools
+│   ├── handlers/           # Message/tool handling
+│   └── utils/              # Utilities (flags, logging)
+├── examples/               # TypeScript examples
+└── dist/                   # Compiled output
 ```
 
-### Message History
+## ✅ What's Included in Phase 4
 
-```typescript
-// Get all messages
-const messages = agent.getMessages()
-
-// Clear history
-agent.clearHistory()
-
-// Export/Import state
-const state = agent.exportState()
-agent.importState(state)
-```
-
-## 🛠️ Development
-
-### Available Scripts
-
-| Script | Purpose |
-|--------|---------|
-| `bun run dev` | Watch mode with auto-reload |
-| `bun run build` | TypeScript compilation |
-| `bun run type-check` | Type checking only |
-| `bun run lint` | Lint with Biome |
-| `bun run format` | Format code with Biome |
-| `bun test` | Run tests with Bun |
-| `bun run example` | Run example agent |
-| `bun run clean` | Clean dist & node_modules |
-
-### Adding New Tools
-
-1. Create a new file in `src/tools/`:
-```typescript
-// src/tools/myTool.ts
-import { z } from 'zod'
-import { createTool } from './index.js'
-
-export const myToolSchema = z.object({
-  input: z.string(),
-})
-
-export const myTool = createTool(
-  'my-tool',
-  'Description of what the tool does',
-  myToolSchema,
-  async ({ input }) => ({
-    type: 'text',
-    text: `Processed: ${input}`,
-  })
-)
-```
-
-2. Export from `src/tools/index.ts`:
-```typescript
-export * from './myTool.js'
-```
-
-3. Use in agent:
-```typescript
-import { myTool } from '@sawcode/agent'
-
-agent.addTool(myTool)
-```
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-bun test
-
-# Watch mode
-bun test --watch
-
-# With coverage
-bun test --coverage
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-```bash
-# Logging
-DEBUG=sawcode:* bun run example
-
-# API Keys (if using real Claude API)
-ANTHROPIC_API_KEY=your-key-here
-```
-
-### TypeScript Configuration
-
-Modify `tsconfig.json` to adjust compiler options:
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
-    "module": "ESNext",
-    "strict": true
-  }
-}
-```
-
-## 📚 API Reference
-
-### Agent Class
-
-#### Constructor
-
-```typescript
-new Agent(config?: AgentConfig)
-```
-
-#### Methods
-
-- `query(message: string, options?: QueryOptions): Promise<QueryResult>`
-- `processToolResult(toolUseId: string, toolName: string, toolArgs: Record<string, unknown>): Promise<QueryResult>`
-- `addTool(tool: ToolDefinition): void`
-- `getMessages(): AgentMessage[]`
-- `clearHistory(): void`
-- `getConfig(): AgentConfig`
-- `updateConfig(config: Partial<AgentConfig>): void`
-- `exportState(): AgentState`
-- `importState(state: AgentState): void`
-
-### Tool Factory
-
-```typescript
-createTool<Schema extends ToolSchema>(
-  name: string,
-  description: string,
-  inputSchema: z.ZodObject<Schema>,
-  handler: (args: InferSchema<Schema>) => Promise<CallToolResult>
-): ToolDefinition<Schema>
-```
-
-## 🚢 Deployment
-
-### As Claude Code Skill
-
-1. Build the project:
-```bash
-bun run build
-```
-
-2. Package the `dist/` directory
-
-3. Register with Claude Code SDK:
-```typescript
-import { createSdkMcpServer } from '@claudecode/sdk'
-import { Agent, bashTool } from '@sawcode/agent'
-
-const agent = new Agent({ tools: [bashTool] })
-
-export default createSdkMcpServer({
-  name: 'SawCode Agent',
-  tools: [/* your tools */],
-})
-```
-
-### Docker
-
-Create a `Dockerfile`:
-
-```dockerfile
-FROM oven/bun:latest
-
-WORKDIR /app
-COPY . .
-
-RUN bun install
-RUN bun run build
-
-EXPOSE 3000
-CMD ["bun", "run", "example"]
-```
-
-Build and run:
-```bash
-docker build -t sawcode .
-docker run -it sawcode
-```
-
-## 📝 License
-
-MIT
+- ✅ Feature flags system (13 configurable flags)
+- ✅ Conditional tool loading based on flags
+- ✅ Structured logging with timestamps and context
+- ✅ Advanced error classes from Claude Code
+- ✅ Full documentation and examples
+- ✅ Integration test suite
 
 ## 🤝 Contributing
 
-Contributions welcome! Please:
+Pull requests welcome! Please:
+- Run `bun run format` before submitting
+- Ensure `bun run type-check` passes
+- Update docs if adding features
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 📄 License
 
-## 📞 Support
-
-- 📖 [Claude Code Documentation](https://claude.com/claude-code)
-- 🐛 [Report Issues](https://github.com/anthropics/claude-code/issues)
-- 💬 [Discussions](https://github.com/anthropics/claude-code/discussions)
+MIT - See LICENSE file
 
 ---
 
-**Built with ❤️ using Bun + TypeScript**
+**Build Status:** ✅ Production Ready  
+**Last Updated:** April 2, 2026  
+**Framework:** Bun + TypeScript (ESM, Strict Mode)
+
+**→ [Full Documentation](docs/index.md) | [Quick Reference](docs/guides/quick-reference.md) | [Examples](docs/examples/)**

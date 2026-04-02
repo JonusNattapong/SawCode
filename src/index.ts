@@ -25,6 +25,31 @@ export * from './types.js'
 export { createTool, createRegistry, getTool, listTools } from './tools/index.js'
 export { bashTool, bashSchema } from './tools/bash.js'
 export { webfetchTool, webfetchSchema } from './tools/webfetch.js'
+export { filereadTool, filereadSchema } from './tools/fileread.js'
+export { filewriteTool, filewriteSchema } from './tools/filewrite.js'
+export { listdirTool, listdirSchema } from './tools/listdir.js'
+export { grepTool, grepSchema } from './tools/grep.js'
+export { findTool, findSchema } from './tools/find.js'
+export { treeTool, treeSchema } from './tools/tree.js'
+// Phase 9: Git & GitHub Tools - TODO: Fix schema exports
+// export { gitStatusTool, gitStatusSchema } from './tools/git.js'
+// export { githubPRHelperTool, githubPRHelperSchema } from './tools/github.js'
+// Phase 10: Context Extraction
+export { contextExtractorTool, contextExtractorSchema } from './tools/contextExtractor.js'
+export { codeAnalyzerTool, codeAnalyzerSchema } from './tools/codeAnalyzer.js'
+export { gitHistoryAnalyzerTool, gitHistoryAnalyzerSchema } from './tools/gitHistoryAnalyzer.js'
+// Phase 11: Code Review
+export { codeReviewerTool, codeReviewerSchema } from './tools/codeReviewer.js'
+export { suggestionEngineTool, suggestionEngineSchema } from './tools/suggestionEngine.js'
+export { complianceCheckerTool, complianceCheckerSchema } from './tools/complianceChecker.js'
+// Phase 12: Voice & Audio
+export { speechToTextTool, speechToTextSchema } from './tools/speechToText.js'
+export { textToSpeechTool, textToSpeechSchema } from './tools/textToSpeech.js'
+export { audioProcessorTool, audioProcessorSchema } from './tools/audioProcessor.js'
+// Phase 18: AI-Powered Features
+export { semanticSearchTool, semanticSearchSchema } from './tools/semantic-search.js'
+export { diagnosticEngineTool, diagnosticEngineSchema } from './tools/diagnostic-engine.js'
+export { optimizationSuggesterTool, optimizationSuggesterSchema } from './tools/optimization-suggester.js'
 export { AgentTUI, launchTUI } from './tui/index.js'
 export type { TUIConfig } from './tui/index.js'
 export * from './providers/index.js'
@@ -42,9 +67,9 @@ export class Agent {
     this.state = {
       messages: [],
       config: {
-        model: config.model || 'claude-opus-4-6',
+        model: config.model || 'qwen3-coder-next:cloud',
         temperature: config.temperature || 0.7,
-        maxTokens: config.maxTokens || 2048,
+        maxTokens: config.maxTokens || 4096,
         systemPrompt: config.systemPrompt,
       },
       toolRegistry: createRegistry(tools),
@@ -80,6 +105,13 @@ export class Agent {
   }
 
   /**
+   * Get available tools
+   */
+  getTools(): ToolDefinition[] {
+    return Array.from(this.state.toolRegistry.values())
+  }
+
+  /**
    * Update configuration
    */
   updateConfig(config: Partial<AgentConfig>): void {
@@ -108,14 +140,22 @@ export class Agent {
    * Export state for persistence
    */
   exportState(): AgentState {
-    return structuredClone(this.state)
+    return {
+      messages: [...this.state.messages],
+      config: { ...this.state.config },
+      toolRegistry: new Map(this.state.toolRegistry),
+    }
   }
 
   /**
    * Import state for resuming
    */
   importState(state: AgentState): void {
-    this.state = structuredClone(state)
+    this.state = {
+      messages: [...state.messages],
+      config: { ...state.config },
+      toolRegistry: new Map(state.toolRegistry),
+    }
   }
 }
 

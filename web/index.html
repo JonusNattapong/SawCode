@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SawCode - AI Agent Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1419 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: #e0e0e0;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #00d4ff;
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: #a0a0a0;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            color: white;
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 36px rgba(0, 212, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #e0e0e0;
+            border: 2px solid #00d4ff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateY(-4px);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(0, 212, 255, 0.1);
+        }
+
+        .features h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: #a0a0a0;
+            font-size: 0.95rem;
+        }
+
+        /* Tools Section */
+        .tools {
+            padding: 5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tools h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tool-box {
+            padding: 1.5rem;
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .tool-box:hover {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+        }
+
+        .tool-box h4 {
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-box p {
+            font-size: 0.85rem;
+            color: #a0a0a0;
+        }
+
+        /* Code Example */
+        .code-section {
+            padding: 5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(0, 212, 255, 0.1);
+        }
+
+        .code-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .code-block {
+            background: #0a0e27;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            color: #00d4ff;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            border-top: 1px solid rgba(0, 212, 255, 0.1);
+            text-align: center;
+            color: #606060;
+        }
+
+        footer a {
+            color: #00d4ff;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            nav ul {
+                display: none;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">SawCode</div>
+        <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#docs">Documentation</a></li>
+            <li><a href="https://github.com/JonusNattapong/SawCode" target="_blank">GitHub</a></li>
+        </ul>
+        <a href="#docs" class="nav-cta">Get Started</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>AI Agent Framework for <span class="gradient-text">Claude Code</span></h1>
+        <p>Build powerful AI agents with TypeScript + Bun. Real Claude conversations with tool use, feature flags, and structured logging.</p>
+        <div class="cta-buttons">
+            <a href="/docs/index.md" class="btn btn-primary">📚 Read Documentation</a>
+            <a href="#code" class="btn btn-secondary">View Code Example</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2>Powerful Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>Real Claude Agent</h3>
+                <p>Powered by Claude 3.5 Sonnet with full tool use capabilities</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚩</div>
+                <h3>Feature Flags</h3>
+                <p>Control tools and features via environment variables (13 flags)</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3>Structured Logging</h3>
+                <p>Component-based logging with timestamps and context</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Ultra Fast</h3>
+                <p>Bun runtime with instant startup and development experience</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💾</div>
+                <h3>State Management</h3>
+                <p>Save and resume conversations automatically</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Interactive TUI</h3>
+                <p>Beautiful terminal UI inspired by Claude</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tools Section -->
+    <section class="tools" id="tools">
+        <h2>Built-in Tools</h2>
+        <div class="tools-grid">
+            <div class="tool-box">
+                <h4>bash</h4>
+                <p>Execute shell commands</p>
+            </div>
+            <div class="tool-box">
+                <h4>webfetch</h4>
+                <p>HTTP requests (GET/POST)</p>
+            </div>
+            <div class="tool-box">
+                <h4>fileread</h4>
+                <p>Read files from disk</p>
+            </div>
+            <div class="tool-box">
+                <h4>filewrite</h4>
+                <p>Write files to disk</p>
+            </div>
+            <div class="tool-box">
+                <h4>listdir</h4>
+                <p>List directories</p>
+            </div>
+            <div class="tool-box">
+                <h4>+More</h4>
+                <p>Easily add custom tools</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example -->
+    <section class="code-section" id="code">
+        <h2>Quick Start</h2>
+        <div class="code-block">
+            <code>
+# Install<br>
+bun install<br>
+<br>
+# Configure<br>
+echo 'ANTHROPIC_API_KEY=sk-ant-...' > .env<br>
+<br>
+# Run<br>
+bun src/cli.ts                    # Interactive TUI<br>
+bun src/cli.ts query "hello"      # Quick query<br>
+<br>
+# With Feature Flags<br>
+SAWCODE_ENABLE_FILE_TOOLS=false bun src/cli.ts<br>
+DEBUG=query-handler bun src/cli.ts query "test"
+            </code>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="docs">
+        <div>
+            <p>🚀 SawCode - AI Agent Framework</p>
+            <p>Made with ❤️ by the community</p>
+            <p>
+                <a href="https://github.com/JonusNattapong/SawCode">GitHub</a>
+                <a href="/docs/index.md">Documentation</a>
+                <a href="/docs/guides/quick-reference.md">Quick Reference</a>
+            </p>
+            <p style="color: #404040; margin-top: 1rem; font-size: 0.9rem;">
+                © 2026 SawCode. All rights reserved.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

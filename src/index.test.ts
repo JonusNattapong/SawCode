@@ -10,7 +10,7 @@ describe('Agent', () => {
 
   beforeEach(() => {
     agent = new Agent({
-      model: 'claude-opus-4-6',
+      model: 'qwen3-coder-next:cloud',
       tools: [bashTool, webfetchTool] as any,
     })
   })
@@ -22,7 +22,7 @@ describe('Agent', () => {
 
   it('should get config', () => {
     const config = agent.getConfig()
-    expect(config.model).toBe('claude-opus-4-6')
+    expect(config.model).toBe('qwen3-coder-next:cloud')
     expect(config.temperature).toBe(0.7)
   })
 
